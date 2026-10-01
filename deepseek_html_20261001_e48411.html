@@ -1,0 +1,2849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>ATOMVERSE</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --cyan:#5fe3ff; --blue:#4c7dff; --pink:#ff5c80; --text:#e8eef7;
+    --text-dim:#94a3bd; --text-faint:#5f6f8a;
+    --line:rgba(120,180,255,.18); --glass:rgba(6,10,22,.8);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#04040a;color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;user-select:none;-webkit-user-select:none;
+    -webkit-tap-highlight-color:transparent}
+  #c{position:absolute;inset:0;display:block;touch-action:none;cursor:grab}
+  #c:active{cursor:grabbing}
+
+  .hud{position:absolute;inset:0;pointer-events:none;z-index:10;padding:14px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase}
+  .hud button{pointer-events:auto;font-family:inherit;font-size:inherit;letter-spacing:inherit;
+    text-transform:inherit;cursor:pointer;border-radius:8px;padding:8px 11px;
+    border:1px solid var(--line);background:var(--glass);color:var(--text);
+    backdrop-filter:blur(10px);transition:border-color .2s,color .2s}
+  .hud button:hover{border-color:rgba(120,180,255,.5);color:#fff}
+  .hud button:active{transform:scale(.97)}
+  .hud button.on{border-color:var(--cyan);color:#fff;box-shadow:0 0 14px -4px var(--cyan)}
+
+  .tl{position:absolute;top:14px;left:14px;display:flex;align-items:center;gap:10px;pointer-events:none}
+  .tl svg{width:28px;height:28px;filter:drop-shadow(0 0 8px rgba(95,227,255,.6))}
+  .tl .name{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;
+    letter-spacing:.16em;color:#fff;line-height:1}
+  .tl .sub{font-size:8.5px;color:var(--text-faint);margin-top:3px}
+
+  .tr{position:absolute;top:14px;right:14px;display:flex;gap:6px;pointer-events:none}
+  .tr button{pointer-events:auto}
+
+  .info{position:absolute;top:64px;left:50%;transform:translateX(-50%);
+    max-width:min(720px,calc(100vw - 28px));display:flex;align-items:center;gap:10px;
+    padding:9px 12px;border-radius:10px;border:1px solid var(--line);
+    background:var(--glass);backdrop-filter:blur(12px);pointer-events:auto}
+  .info .code{color:var(--cyan);flex:0 0 auto}
+  .info .title{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;
+    letter-spacing:.04em;text-transform:none;color:#fff;flex:0 0 auto;white-space:nowrap}
+  .info .sep{width:1px;height:20px;background:var(--line);flex:0 0 auto}
+  .info .sum{font-family:'Inter',sans-serif;font-size:12px;letter-spacing:0;
+    text-transform:none;line-height:1.4;color:#b8c6dc;flex:1;min-width:0;
+    overflow:hidden;text-overflow:ellipsis;display:-webkit-box;
+    -webkit-line-clamp:2;-webkit-box-orient:vertical}
+
+  .bl{position:absolute;bottom:14px;left:14px;padding:9px 12px;border-radius:9px;
+    border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(12px)}
+  .bl .c{color:var(--cyan);font-size:9px}
+  .bl .t{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:500;
+    letter-spacing:.06em;color:#fff;margin-top:2px;text-transform:uppercase}
+
+  .br{position:absolute;bottom:14px;right:14px;padding:9px 12px;border-radius:9px;
+    border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(12px);text-align:right}
+  .br .v{font-family:'Space Grotesk',sans-serif;font-size:18px;color:#fff;line-height:1}
+  .br .v sup{font-size:.6em;color:var(--cyan)}
+  .br .u{font-size:9.5px;color:var(--text-dim);margin-left:2px}
+  .br .l{font-size:8.5px;color:var(--text-faint);margin-top:3px}
+
+  #mini{position:absolute;bottom:120px;right:14px;width:140px;height:140px;
+    border-radius:11px;border:1px solid var(--line);background:rgba(4,8,18,.85);
+    backdrop-filter:blur(12px);display:none;overflow:hidden;z-index:11;pointer-events:none}
+  #mini.on{display:block}
+  #mini canvas{display:block;width:100%;height:100%}
+  #mini .lbl{position:absolute;top:5px;left:7px;font-size:8px;color:var(--cyan);letter-spacing:.16em}
+  #mini .sym{position:absolute;top:3px;right:7px;font-family:'Space Grotesk',sans-serif;
+    font-size:14px;font-weight:600;color:#fff}
+
+  .picker{position:absolute;bottom:110px;left:50%;transform:translateX(-50%);
+    display:none;gap:5px;padding:7px;border-radius:10px;border:1px solid var(--line);
+    background:var(--glass);backdrop-filter:blur(12px);z-index:11;
+    max-width:calc(100vw - 28px);flex-wrap:wrap;justify-content:center;pointer-events:auto}
+  .picker.on{display:flex}
+  .picker button{width:48px;height:56px;padding:4px 0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:2px;font-size:8.5px}
+  .picker button.sel{border-color:var(--cyan);background:rgba(95,227,255,.15)}
+  .picker .z{font-size:8px;color:var(--cyan)}
+  .picker .s{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;line-height:1}
+  .picker .n{font-size:7px;color:var(--text-faint);letter-spacing:.02em;text-transform:uppercase}
+
+  #intro{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;
+    justify-content:center;padding:8vw;background:
+    radial-gradient(900px 600px at 25% 45%,rgba(20,40,96,.5),transparent 70%),
+    linear-gradient(180deg,rgba(4,4,10,.85),rgba(4,4,10,.95))}
+  #intro.off{display:none}
+  #intro .eb{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.32em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:22px}
+  #intro h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(32px,8vw,80px);
+    font-weight:700;line-height:1.02;letter-spacing:-.02em;margin:0;max-width:16ch;color:#fff}
+  #intro h1 em{font-style:normal;background:linear-gradient(100deg,var(--cyan),var(--blue) 50%,
+    #c86bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  #intro p{margin:24px 0 0;max-width:46ch;font-size:clamp(14px,1.6vw,16px);
+    line-height:1.65;color:#a8b8d0}
+  #intro .act{margin-top:36px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  #intro button{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.22em;
+    text-transform:uppercase;padding:15px 28px;border-radius:11px;cursor:pointer;
+    border:1px solid rgba(95,227,255,.6);color:#fff;
+    background:linear-gradient(180deg,rgba(76,125,255,.4),rgba(76,125,255,.15));
+    box-shadow:0 0 26px -8px rgba(95,227,255,.8);transition:all .2s}
+  #intro button:hover{border-color:var(--cyan);box-shadow:0 0 32px -6px var(--cyan)}
+  #intro .ft{margin-top:22px;font-family:'JetBrains Mono',monospace;font-size:9.5px;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--text-faint)}
+
+  #load{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:24px;background:
+    radial-gradient(700px 500px at 50% 50%,rgba(18,34,80,.4),transparent 70%),#04040a}
+  #load.off{display:none}
+  #load .orbit{width:100px;height:100px;position:relative}
+  #load .ring{position:absolute;inset:0;border-radius:50%;
+    border:1px solid rgba(95,227,255,.16);animation:sp 2.6s linear infinite}
+  #load .ring:nth-child(1){border-top-color:var(--cyan)}
+  #load .ring:nth-child(2){inset:13px;animation:sp 3.6s linear infinite reverse;
+    border-top-color:#c86bff}
+  #load .ring:nth-child(3){inset:26px;animation:sp 1.9s linear infinite;
+    border-top-color:var(--blue)}
+  #load .core{position:absolute;inset:42px;border-radius:50%;
+    background:radial-gradient(circle,#fff,var(--cyan) 45%,transparent 72%);
+    box-shadow:0 0 30px var(--cyan);animation:cp 1.8s ease-in-out infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @keyframes cp{0%,100%{transform:scale(.85);opacity:.75}50%{transform:scale(1.1);opacity:1}}
+  #load .txt{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.28em;
+    text-transform:uppercase;color:var(--text-dim)}
+  #load .bar{width:min(260px,60vw);height:2px;background:rgba(120,180,255,.14);
+    border-radius:2px;overflow:hidden}
+  #load .fill{height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--cyan));
+    box-shadow:0 0 12px var(--cyan);transition:width .2s linear}
+
+  .modal{position:fixed;inset:0;z-index:40;display:none;place-items:center;padding:20px;
+    background:rgba(4,6,14,.85);backdrop-filter:blur(10px);overflow-y:auto}
+  .modal.on{display:grid}
+  .modal .box{width:min(620px,100%);padding:22px;border-radius:13px;
+    border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(14px)}
+  .modal .box.wide{width:min(860px,100%)}
+  .modal .hd{display:flex;justify-content:space-between;gap:14px;margin-bottom:16px}
+  .modal h2{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;
+    margin:0;color:#fff;letter-spacing:.02em}
+  .modal .sb{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--text-faint);margin-top:3px}
+  .modal .x{border:1px solid var(--line);background:transparent;color:var(--text-dim);
+    width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;
+    display:grid;place-items:center;flex:0 0 auto}
+  .modal .x:hover{color:#fff;border-color:rgba(120,180,255,.5)}
+  .modal p{font-size:13.5px;line-height:1.6;color:#c6d4e8;margin:0}
+  .modal h3{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--cyan);margin:16px 0 8px}
+  .modal ul{list-style:none;margin:0;padding:0}
+  .modal li{position:relative;padding-left:14px;font-size:12.5px;line-height:1.55;
+    color:var(--text-dim);margin-bottom:5px}
+  .modal li::before{content:'';position:absolute;left:0;top:8px;width:5px;height:5px;
+    background:var(--cyan);box-shadow:0 0 6px var(--cyan);transform:rotate(45deg)}
+  .dyk{margin-top:14px;padding:11px 13px;border-radius:9px;
+    border:1px solid rgba(200,107,255,.3);
+    background:linear-gradient(180deg,rgba(200,107,255,.1),rgba(200,107,255,.02))}
+  .dyk .l{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.2em;
+    text-transform:uppercase;color:#c86bff;margin-bottom:5px}
+  .dyk p{font-size:12.5px;color:#cdc4e2}
+  .note{margin-top:12px;font-size:11px;line-height:1.5;color:var(--text-faint);font-style:italic}
+
+  .bohr{display:flex;gap:20px;flex-wrap:wrap}
+  .bohr .cv{flex:0 0 auto;width:280px;height:280px;border-radius:11px;
+    border:1px solid var(--line);background:radial-gradient(circle,rgba(20,30,60,.6),rgba(4,6,14,.95))}
+  .bohr .cv canvas{display:block;width:100%;height:100%}
+  .bohr .det{flex:1;min-width:220px}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}
+  .stat{padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:rgba(10,18,38,.4)}
+  .stat .l{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--text-faint)}
+  .stat .v{font-family:'Space Grotesk',sans-serif;font-size:15px;color:#fff;margin-top:2px}
+  .stat .v.p{color:var(--pink)} .stat .v.c{color:var(--cyan)}
+
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:18px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;border:1px solid}
+  .chip .d{width:8px;height:8px;border-radius:50%}
+  .chip.p{border-color:rgba(255,92,128,.5);background:rgba(255,92,128,.12);color:#ffb0c0}
+  .chip.p .d{background:#ff5c80;box-shadow:0 0 6px #ff5c80}
+  .chip.n{border-color:rgba(140,160,220,.5);background:rgba(140,160,220,.1);color:#c0ccec}
+  .chip.n .d{background:#8ea2c8;box-shadow:0 0 6px #8ea2c8}
+  .chip.e{border-color:rgba(95,227,255,.5);background:rgba(95,227,255,.1);color:#bff0ff}
+  .chip.e .d{background:#5fe3ff;box-shadow:0 0 6px #5fe3ff}
+
+  .bond{padding:11px 13px;border-radius:9px;border:1px solid var(--line);
+    background:rgba(10,18,38,.4);cursor:pointer;text-align:left;color:inherit;
+    font-family:inherit;margin-bottom:7px;display:block;width:100%;transition:all .2s}
+  .bond:hover{border-color:rgba(120,180,255,.5);background:rgba(20,34,66,.7)}
+  .bond .n{font-family:'Space Grotesk',sans-serif;font-size:13.5px;color:#fff;font-weight:500}
+  .bond .d{font-size:11.5px;color:var(--text-dim);margin-top:2px}
+
+  .qopt{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+    background:rgba(12,20,40,.55);color:var(--text);font-family:'Inter',sans-serif;
+    font-size:13.5px;text-align:left;cursor:pointer;margin-bottom:8px;display:flex;
+    align-items:center;gap:11px;transition:all .2s;text-transform:none;letter-spacing:0}
+  .qopt:hover:not(:disabled){border-color:rgba(120,180,255,.5);background:rgba(24,40,78,.7)}
+  .qopt.ok{border-color:rgba(95,227,255,.75);background:rgba(95,227,255,.14);color:#fff}
+  .qopt.no{border-color:rgba(255,92,122,.7);background:rgba(255,92,122,.1)}
+  .qopt .k{font-family:'JetBrains Mono',monospace;font-size:10px;width:22px;height:22px;
+    display:grid;place-items:center;border-radius:6px;border:1px solid var(--line);
+    color:var(--text-faint)}
+  .fdb{margin-top:12px;padding:11px 13px;border-radius:10px;font-size:12.5px;line-height:1.5}
+  .fdb.ok{border:1px solid rgba(95,227,255,.4);background:rgba(95,227,255,.07);color:#bff0ff}
+  .fdb.no{border:1px solid rgba(255,92,122,.4);background:rgba(255,92,122,.07);color:#ffc9d3}
+  .qft{margin-top:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+
+  #cam{position:absolute;right:14px;top:64px;width:150px;height:112px;border-radius:10px;
+    border:1px solid var(--line);background:#000;display:none;z-index:12;overflow:hidden}
+  #cam.on{display:block}
+  #cam video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+  #cam .st{position:absolute;left:6px;bottom:6px;font-family:'JetBrains Mono',monospace;
+    font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);
+    background:rgba(0,0,0,.7);padding:2px 5px;border-radius:4px}
+
+  .labels{position:absolute;inset:0;pointer-events:none;z-index:9}
+  .lbl{position:absolute;transform:translate(-50%,-50%);padding:4px 8px;border-radius:6px;
+    background:rgba(4,8,18,.85);border:1px solid rgba(95,227,255,.4);
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;
+    text-transform:uppercase;color:#fff;white-space:nowrap;opacity:0;
+    transition:opacity .3s;pointer-events:none}
+  .lbl .s{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:0;
+    color:rgba(200,220,245,.7);text-transform:none;margin-top:1px;display:block}
+  .lbl.sym{font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:none;
+    font-family:'Space Grotesk',sans-serif}
+
+  @media (max-width:700px){
+    .info{top:56px;padding:7px 10px}
+    .info .sep{display:none}
+    .info .sum{-webkit-line-clamp:2;font-size:11px}
+    .br{padding:7px 10px} .br .v{font-size:15px}
+    .bl{padding:7px 10px} .bl .t{font-size:12px}
+    #mini{width:110px;height:110px;bottom:100px}
+    .picker{bottom:100px} .picker button{width:44px;height:52px}
+    #intro{padding:22px;justify-content:flex-end;padding-bottom:10vh}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<div class="labels" id="labels"></div>
+
+<div class="hud">
+  <div class="tl">
+    <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="3.4" fill="#5FE3FF"/>
+      <ellipse cx="20" cy="20" rx="16" ry="6.4" fill="none" stroke="#4C7DFF" stroke-width="1"/>
+      <ellipse cx="20" cy="20" rx="16" ry="6.4" fill="none" stroke="#C86BFF" stroke-width="1" transform="rotate(60 20 20)"/>
+      <ellipse cx="20" cy="20" rx="16" ry="6.4" fill="none" stroke="#5FE3FF" stroke-width="1" transform="rotate(120 20 20)"/></svg>
+    <div><div class="name">ATOMVERSE</div><div class="sub">Earth to Quarks</div></div>
+  </div>
+
+  <div class="tr">
+    <button id="bHand" title="Webcam gesture">✋</button>
+    <button id="bRot" title="Auto-rotate">↻</button>
+    <button id="bSnd" title="Sound">♪</button>
+    <button id="bQuiz" title="Quiz">Quiz</button>
+    <button id="bHelp" title="Help">?</button>
+  </div>
+
+  <div class="info">
+    <span class="code" id="iCode">LEVEL 00</span>
+    <span class="title" id="iTitle">EARTH</span>
+    <span class="sep"></span>
+    <span class="sum" id="iSum">Loading…</span>
+  </div>
+
+  <div class="bl"><div class="c" id="lCode">LEVEL 00</div><div class="t" id="lTitle">EARTH</div></div>
+
+  <div class="br">
+    <div><span class="v">10<sup id="sExp">7</sup></span><span class="u">m</span></div>
+    <div class="l" id="sLab">Planetary</div>
+  </div>
+
+  <div id="mini"><canvas id="miniC" width="280" height="280"></canvas>
+    <div class="lbl">SHELLS</div><div class="sym" id="miniSym">Na</div></div>
+
+  <div class="picker" id="picker"></div>
+
+  <div id="cam"><video id="camV" playsinline autoplay muted></video>
+    <div class="st" id="camS">Show hand</div></div>
+</div>
+
+<div id="intro" class="off">
+  <div class="eb">An interactive journey · 12 levels of scale</div>
+  <h1>From <em>Earth</em> to the <em>quark.</em></h1>
+  <p>Zoom from the planet down to a brick house in Bengaluru, into the atoms of real elements, through their electron shells, into the nucleus, and finally into the quarks inside a proton.</p>
+  <div class="act"><button id="bEnter">Begin the journey</button>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-faint)">Best with sound on</span></div>
+  <div class="ft">Pinch · Scroll · Drag · Webcam gestures</div>
+</div>
+
+<div id="load">
+  <div class="orbit"><div class="ring"></div><div class="ring"></div><div class="ring"></div><div class="core"></div></div>
+  <div class="txt">Building the universe…</div>
+  <div class="bar"><div class="fill" id="lFill"></div></div>
+</div>
+
+<!-- Modals -->
+<div class="modal" id="mInfo"><div class="box wide">
+  <div class="hd"><div><h2 id="miT">EARTH</h2><div class="sb" id="miS">Level 00</div></div>
+    <button class="x" data-close="mInfo">✕</button></div>
+  <p id="miSum"></p><h3>Key facts</h3><ul id="miF"></ul>
+  <div class="dyk" id="miDW"><div class="l">Did you know?</div><p id="miD"></p></div>
+  <p class="note" id="miN"></p></div></div>
+
+<div class="modal" id="mBohr"><div class="box wide">
+  <div class="hd"><div><h2 id="mbT">Sodium</h2><div class="sb" id="mbS">Z = 11</div></div>
+    <button class="x" data-close="mBohr">✕</button></div>
+  <div class="bohr">
+    <div class="cv"><canvas id="bohrC" width="560" height="560"></canvas></div>
+    <div class="det">
+      <p id="mbSum"></p>
+      <div class="stats" id="mbStats"></div>
+      <div class="chips" id="mbChips"></div>
+      <h3>Electron configuration</h3><ul id="mbShells"></ul>
+      <h3>Bonds &amp; forces</h3><div id="mbBonds"></div>
+    </div>
+  </div></div></div>
+
+<div class="modal" id="mPart"><div class="box">
+  <div class="hd"><div><h2 id="mpT">Proton</h2><div class="sb" id="mpS">Nucleon</div></div>
+    <button class="x" data-close="mPart">✕</button></div>
+  <p id="mpSum"></p><h3>Properties</h3><ul id="mpF"></ul>
+  <div class="dyk"><div class="l">Did you know?</div><p id="mpD"></p></div></div></div>
+
+<div class="modal" id="mBond"><div class="box">
+  <div class="hd"><div><h2 id="mbnT">Strong force</h2><div class="sb" id="mbnS">Bond</div></div>
+    <button class="x" data-close="mBond">✕</button></div>
+  <p id="mbnSum"></p><h3>Key facts</h3><ul id="mbnF"></ul>
+  <div class="dyk"><div class="l">Did you know?</div><p id="mbnD"></p></div></div></div>
+
+<div class="modal" id="mQuiz"><div class="box">
+  <div class="hd"><div><h2 id="mqT">Knowledge Check</h2><div class="sb" id="mqS">Question 1 of 8</div></div>
+    <button class="x" data-close="mQuiz">✕</button></div>
+  <p id="mqQ"></p><div id="mqOpts"></div><div id="mqFdb"></div>
+  <div class="qft"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-faint)" id="mqScore">Score 0 / 8</span>
+    <button id="mqNext" style="border:1px solid rgba(95,227,255,.6);color:#fff;background:linear-gradient(180deg,rgba(76,125,255,.4),rgba(76,125,255,.15));padding:10px 16px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;opacity:.4" disabled>Next</button></div>
+</div></div>
+
+<div class="modal" id="mHelp"><div class="box">
+  <div class="hd"><div><h2>How to Explore</h2><div class="sb">12 levels</div></div>
+    <button class="x" data-close="mHelp">✕</button></div>
+  <div id="mhBody"></div>
+  <p class="note" style="margin-top:16px">Every 3D model is a teaching visualisation. Real atoms, orbitals and quarks cannot be drawn to literal scale.</p>
+  <div class="qft"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-faint)">Zoom · Question · Understand</span>
+    <button class="x" style="width:auto;padding:8px 14px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase" data-close="mHelp">Got it</button></div>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.137.0/build/three.min.js"></script>
+<script>
+// ============================================================================
+// ATOMVERSE — single-file interactive journey from Earth to quarks
+// ============================================================================
+(function(){
+'use strict';
+
+var $ = function(id){ return document.getElementById(id); };
+
+// ---------------------------------------------------------------------------
+// Guard: Three.js must be loaded
+// ---------------------------------------------------------------------------
+if (typeof THREE === 'undefined') {
+  $('load').innerHTML = '<div style="color:#fff;text-align:center;padding:30px;max-width:520px;font-family:sans-serif">' +
+    '<h2 style="color:#ff5c7a;margin:0 0 10px">Could not load Three.js</h2>' +
+    '<p style="color:#aaa;font-size:14px;margin:0">This page needs internet on first load. Check your connection and reload.</p></div>';
+  return;
+}
+
+// ---------------------------------------------------------------------------
+// Data — Elements
+// ---------------------------------------------------------------------------
+var ELEMENTS = [
+  { z:11, symbol:'Na', name:'Sodium', grp:'metal', protons:11, neutrons:12, shells:[2,8,1],
+    color:0xf2f4f6, colorCss:'#f2f4f6', emis:0x9aa8b0, metal:0.85, rough:0.32,
+    appearance:'Silvery-white, soft — cuttable with a knife', melting:97.79, boiling:883,
+    density:0.968, discovered:'1807 · Humphry Davy',
+    funFact:'Sodium reacts violently with water — stored under oil.',
+    summary:'A soft silvery-white alkali metal with one outer electron.' },
+
+  { z:12, symbol:'Mg', name:'Magnesium', grp:'metal', protons:12, neutrons:12, shells:[2,8,2],
+    color:0xd0d5d8, colorCss:'#d0d5d8', emis:0x808890, metal:0.72, rough:0.42,
+    appearance:'Shiny greyish-white metal', melting:650, boiling:1091, density:1.738,
+    discovered:'1755 · Joseph Black',
+    funFact:'Magnesium burns with blinding white light.',
+    summary:'The lightest structural metal. Two outer electrons.' },
+
+  { z:13, symbol:'Al', name:'Aluminium', grp:'metal', protons:13, neutrons:14, shells:[2,8,3],
+    color:0xc4cace, colorCss:'#c4cace', emis:0x707a86, metal:0.78, rough:0.38,
+    appearance:'Light silvery-grey metal', melting:660.3, boiling:2470, density:2.70,
+    discovered:'1825 · H.C. Ørsted',
+    funFact:'The most abundant metal in Earth\'s crust.',
+    summary:'A light silvery metal protected by a tough oxide layer.' },
+
+  { z:19, symbol:'K', name:'Potassium', grp:'metal', protons:19, neutrons:20, shells:[2,8,8,1],
+    color:0xeef0f2, colorCss:'#eef0f2', emis:0x98a0a8, metal:0.88, rough:0.28,
+    appearance:'Silvery-white metal', melting:63.5, boiling:759, density:0.862,
+    discovered:'1807 · Humphry Davy',
+    funFact:'Burns with a lilac flame.',
+    summary:'An alkali metal your nerves use to signal.' },
+
+  { z:20, symbol:'Ca', name:'Calcium', grp:'metal', protons:20, neutrons:20, shells:[2,8,8,2],
+    color:0xd2c9b4, colorCss:'#d2c9b4', emis:0x807060, metal:0.65, rough:0.48,
+    appearance:'Dull grey-white metal', melting:842, boiling:1484, density:1.55,
+    discovered:'1808 · Humphry Davy',
+    funFact:'Burns brick-red — the metal in your bones.',
+    summary:'A dull metal essential to bones and teeth.' },
+
+  { z:26, symbol:'Fe', name:'Iron', grp:'metal', protons:26, neutrons:30, shells:[2,8,14,2],
+    color:0x8b9096, colorCss:'#8b9096', emis:0x4a5058, metal:0.8, rough:0.42,
+    appearance:'Grey magnetic metal', melting:1538, boiling:2861, density:7.874,
+    discovered:'Known since antiquity',
+    funFact:'Earth\'s inner core is mostly iron.',
+    summary:'The backbone of steel and the most common element by mass on Earth.' },
+
+  { z:5, symbol:'B', name:'Boron', grp:'nonmetal', vessel:'bowl',
+    protons:5, neutrons:6, shells:[2,3], color:0x3a2820, colorCss:'#3a2820',
+    emis:0x1a0e08, metal:0.15, rough:0.85,
+    appearance:'Dark brown-black powder', melting:2076, boiling:3927, density:2.34,
+    discovered:'1808 · Gay-Lussac',
+    funFact:'Boron is in Pyrex glass and nuclear control rods.',
+    summary:'A metalloid. Dark brown-black in its solid form.' },
+
+  { z:6, symbol:'C', name:'Carbon', grp:'nonmetal', vessel:'bowl',
+    protons:6, neutrons:6, shells:[2,4], color:0x1a1a1a, colorCss:'#1a1a1a',
+    emis:0x0a0a0a, metal:0.15, rough:0.7,
+    appearance:'Black graphite', melting:3642, boiling:4027, density:2.267,
+    discovered:'Known since antiquity',
+    funFact:'Diamond and graphite are both pure carbon.',
+    summary:'The element of life. Graphite is its black form.' },
+
+  { z:14, symbol:'Si', name:'Silicon', grp:'nonmetal', vessel:'dish',
+    protons:14, neutrons:14, shells:[2,8,4], color:0x6a7278, colorCss:'#6a7278',
+    emis:0x2a3036, metal:0.6, rough:0.5,
+    appearance:'Grey with bluish lustre', melting:1414, boiling:3265, density:2.33,
+    discovered:'1824 · Berzelius',
+    funFact:'The backbone of every computer chip.',
+    summary:'A metalloid that powers modern electronics.' },
+
+  { z:15, symbol:'P', name:'Phosphorus', grp:'nonmetal', vessel:'vial',
+    protons:15, neutrons:16, shells:[2,8,5], color:0x8a1a1a, colorCss:'#8a1a1a',
+    emis:0x3a0808, metal:0.1, rough:0.9,
+    appearance:'Dark red powder (red form)', melting:44.2, boiling:280, density:2.34,
+    discovered:'1669 · Hennig Brand',
+    funFact:'White phosphorus glows in the dark.',
+    summary:'Red phosphorus is a dark-red powder.' },
+
+  { z:16, symbol:'S', name:'Sulfur', grp:'nonmetal', vessel:'jar',
+    protons:16, neutrons:16, shells:[2,8,6], color:0xf0d840, colorCss:'#f0d840',
+    emis:0x6a5a10, metal:0.05, rough:0.95,
+    appearance:'Bright yellow crystalline', melting:115.21, boiling:444.6, density:2.07,
+    discovered:'Known since antiquity',
+    funFact:'Known as "brimstone" since ancient times.',
+    summary:'A bright-yellow brittle nonmetal.' },
+
+  { z:34, symbol:'Se', name:'Selenium', grp:'nonmetal', vessel:'jar',
+    protons:34, neutrons:45, shells:[2,8,18,6], color:0x3a3a3a, colorCss:'#3a3a3a',
+    emis:0x101010, metal:0.55, rough:0.6,
+    appearance:'Dark grey with metallic sheen', melting:221, boiling:685, density:4.81,
+    discovered:'1817 · Berzelius',
+    funFact:'Used in solar cells and photocopiers.',
+    summary:'A nonmetal in a metallic-looking grey form.' }
+];
+
+var PARTICLES = {
+  proton: { title:'Proton', sub:'Nucleon · Positive charge',
+    summary:'A positively charged particle in the nucleus. The number of protons defines the element.',
+    facts:['Charge: +1 (+1.602 × 10⁻¹⁹ C)','Mass: 1.6726 × 10⁻²⁷ kg',
+      'Two up quarks + one down quark (uud)','Stable — never observed to decay',
+      'Discovered by Ernest Rutherford, 1917'],
+    dyk:'If a proton were the size of a football, an electron would be a marble 30 km away.' },
+  neutron: { title:'Neutron', sub:'Nucleon · No charge',
+    summary:'A neutral particle in the nucleus. Different neutron counts give isotopes.',
+    facts:['Charge: 0','Mass: 1.6749 × 10⁻²⁷ kg','One up quark + two down quarks (udd)',
+      'A free neutron decays in ~15 minutes','Discovered by James Chadwick, 1932'],
+    dyk:'A teaspoon of neutron-star material would weigh ~4 billion tonnes.' },
+  electron: { title:'Electron', sub:'Lepton · Negative charge',
+    summary:'A fundamental particle with negative charge. Occupies shells around the nucleus.',
+    facts:['Charge: −1','Mass: 9.109 × 10⁻³¹ kg','Class: lepton — not made of quarks',
+      'Occupies shells K, L, M, N…','Discovered by J.J. Thomson, 1897'],
+    dyk:'Electrons exist as standing waves. The orbit picture is a simplification.' },
+  quark: { title:'Quark', sub:'Fundamental particle',
+    summary:'Fundamental building blocks of protons and neutrons. They never appear alone.',
+    facts:['Six flavours: up, down, charm, strange, top, bottom',
+      'Up quark: +2/3 · Down quark: −1/3','Bound by gluons',
+      'Never isolated (colour confinement)','Predicted 1964, confirmed 1968'],
+    dyk:'99% of a proton\'s mass comes from the gluon field, not from its quarks.' },
+  gluon: { title:'Gluon', sub:'Force carrier',
+    summary:'Carriers of the strong nuclear force. They bind quarks and nucleons together.',
+    facts:['Mass: 0','Charge: 0, but carries colour charge','Eight types exist',
+      'The strong force grows with distance','Discovered 1979 at DESY'],
+    dyk:'Pull a quark out and you create new quarks — never a lone quark.' },
+  seapair: { title:'Sea quarks', sub:'Virtual quark–antiquark pairs',
+    summary:'The vacuum inside a proton is not empty — gluon energy constantly creates short-lived virtual quark pairs.',
+    facts:['Virtual pairs exist for ~10⁻²⁴ s','Allowed by Heisenberg uncertainty',
+      'Contribute to the proton mass','Confirmed by deep inelastic scattering'],
+    dyk:'A proton is 3 valence quarks + a churning sea of gluons and virtual pairs.' }
+};
+
+var BONDS = {
+  strong: { title:'Strong nuclear force', sub:'Bond · Inside the nucleus',
+    summary:'The most powerful force in nature. Binds quarks into nucleons and holds the nucleus together.',
+    facts:['Range: ~10⁻¹⁵ m','Carried by gluons','~100× stronger than electromagnetism',
+      'Gets stronger as quarks separate','>99% of ordinary matter\'s mass'],
+    dyk:'Without it, every atom heavier than hydrogen would fly apart.' },
+  electrostatic: { title:'Electrostatic force', sub:'Bond · Between charges',
+    summary:'Attracts opposite charges and repels like charges. Binds electrons to the nucleus.',
+    facts:['Range: infinite','Carried by photons','~100× weaker than the strong force',
+      'Attracts electron (−) to proton (+)','Repels proton from proton'],
+    dyk:'Atoms exist because the strong force barely beats electrostatic repulsion.' },
+  metallic: { title:'Metallic bond', sub:'Bond · In solid metals',
+    summary:'Valence electrons delocalise into a "sea" between positive ion cores.',
+    facts:['Delocalised valence electrons','Explains conductivity, lustre, ductility',
+      'Weaker than covalent or ionic','Explains varied melting points'],
+    dyk:'Electric current in a wire is just a nudge to an existing electron sea.' },
+  covalent: { title:'Covalent bond', sub:'Bond · Shared electrons',
+    summary:'Two atoms share pairs of electrons. The strongest chemical bond.',
+    facts:['Shared electron pairs','Very strong — hundreds of kJ/mol',
+      'Forms molecules like H₂O','Directional — determines shape'],
+    dyk:'The N≡N triple bond is one of the strongest known — 945 kJ/mol.' },
+  vanderwaals: { title:'Van der Waals force', sub:'Bond · Weak attraction',
+    summary:'A weak, short-range attraction between neutral molecules due to temporary electron fluctuations.',
+    facts:['Weaker than covalent or ionic','Range: a few ångströms',
+      'Causes gases to condense','Explains brittle sulfur crystals'],
+    dyk:'A gecko hangs from glass using only van der Waals forces — one hair at a time.' }
+};
+
+var LEVELS = [
+  { code:'LEVEL 00', title:'EARTH',           tag:'Planetary',   dist:22.0, exp: 7.0,  info:0 },
+  { code:'LEVEL 01', title:'CONTINENTS',      tag:'Continental', dist:14.0, exp: 6.5,  info:1 },
+  { code:'LEVEL 02', title:'OCEAN & LAND',    tag:'Geographic',  dist: 9.0, exp: 5.5,  info:2 },
+  { code:'LEVEL 03', title:'REGION',          tag:'Regional',    dist: 6.0, exp: 4.5,  info:3 },
+  { code:'LEVEL 04', title:'LOCALITY',        tag:'Local',       dist: 4.0, exp: 3.5,  info:4 },
+  { code:'LEVEL 05', title:'THE BENCHES',     tag:'Human',       dist: 2.6, exp: 0.0,  info:5 },
+  { code:'LEVEL 06', title:'ATOM',            tag:'Atomic',      dist: 1.6, exp:-10.0,  info:6 },
+  { code:'LEVEL 07', title:'ELECTRON SHELL',  tag:'Shell',       dist: 1.3, exp:-10.3,  info:7 },
+  { code:'LEVEL 08', title:'NUCLEUS',         tag:'Nuclear',     dist: 0.85,exp:-14.0,  info:8 },
+  { code:'LEVEL 09', title:'PROTON',          tag:'Nucleon',     dist: 0.35,exp:-15.0,  info:9 },
+  { code:'LEVEL 10', title:'QUARKS',          tag:'Quark',       dist: 0.18,exp:-16.0,  info:10 },
+  { code:'LEVEL 11', title:'SUBATOMIC FIELD', tag:'Deep',        dist: 0.09,exp:-18.0,  info:11 }
+];
+
+var INFO = [
+  { summary:'Earth — a rocky planet orbiting the Sun at about 150 million km. Every solid object on its surface is built from atoms.',
+    facts:['Diameter: 12,742 km','Mass: 5.97 × 10²⁴ kg','Age: ~4.54 billion years'],
+    dyk:'If Earth were a billiard ball, the atoms inside it would be a millionth of a grain of sand.', note:'' },
+  { summary:'Earth has seven continents floating on tectonic plates. Asia is the largest, holding 60% of humanity.',
+    facts:['Asia covers ~30% of Earth\'s land','~4.7 billion people live there','Mount Everest: 8,849 m'],
+    dyk:'Continents move about as fast as your fingernails grow.', note:'' },
+  { summary:'Beneath the continents lies the ocean — 71% of Earth\'s surface — and above it the atmosphere that makes life possible.',
+    facts:['Ocean covers 361 million km²','Average ocean depth: 3,688 m','Atmosphere: 78% nitrogen, 21% oxygen'],
+    dyk:'We have mapped more of Mars\'s surface than our own ocean floor.', note:'' },
+  { summary:'A region within a continent. Climate, culture and geology vary enormously across a few hundred kilometres.',
+    facts:['Mountains form where plates collide','Rivers carve valleys over millions of years','Civilisations grew along fertile plains'],
+    dyk:'The Himalayas are still rising ~5 mm per year.', note:'' },
+  { summary:'A local area — a city, a town, a village. This one sits on the Deccan Plateau about 900 metres above sea level.',
+    facts:['Cities host most of humanity','Urban areas cover ~3% of land','They consume ~75% of resources'],
+    dyk:'The first cities appeared in Mesopotamia about 6,000 years ago.', note:'' },
+  { summary:'Two wooden benches hold samples of real elements — metals on the left, nonmetals on the right. Tap any sample to travel inside its atom.',
+    facts:['Each sample is a different element','Metals are shiny, malleable, conductive','Nonmetals are dull, brittle, insulators'],
+    dyk:'Every element heavier than helium was forged inside a star.', note:'' },
+  { summary:'The atom — a tiny nucleus surrounded by shells of electrons. It is 99.9999999999999% empty space.',
+    facts:['Typical diameter: 10⁻¹⁰ m','Almost all mass in the nucleus','Protons define the element'],
+    dyk:'An atom is about as empty as the Solar System.',
+    note:'Electron paths are schematic. Real electrons exist as probability clouds, not orbits.' },
+  { summary:'Electrons sit in shells around the nucleus. K holds 2, L holds 8, M holds 18, N holds 32.',
+    facts:['K shell: max 2','L shell: max 8','M shell: max 18','N shell: max 32'],
+    dyk:'Electrons exist as standing waves. "Shell" is a helpful model.',
+    note:'Real electron behaviour is described by quantum mechanics.' },
+  { summary:'The nucleus — a dense cluster of protons and neutrons, held together by the strong nuclear force.',
+    facts:['Roughly 10⁻¹⁴ m across','Holds nearly all the mass','Protons + · Neutrons neutral'],
+    dyk:'The nucleus is 100,000× smaller than the atom yet contains 99.95% of its mass.',
+    note:'Nucleons are drawn much larger than scale so you can see them.' },
+  { summary:'A single proton. Positive charge +1, mass 1.6726 × 10⁻²⁷ kg. Built from three quarks.',
+    facts:['Charge: +1','Two up quarks + one down quark (uud)','Stable — never observed to decay'],
+    dyk:'Protons have never been observed to decay.',
+    note:'The proton is not a solid ball — it is a dynamic system of quarks and gluons.' },
+  { summary:'Inside the proton: two up quarks and one down quark, bound by the strong force carried by gluons.',
+    facts:['Up quark charge: +2/3','Down quark charge: −1/3','+2/3 + 2/3 − 1/3 = +1 (proton)',
+      'The gluon field carries most of the proton\'s mass'],
+    dyk:'Quarks can never be isolated — pull them apart and new quarks materialise.',
+    note:'This is a conceptual diagram. Quarks have no measurable size.' },
+  { summary:'Below the quarks the picture dissolves into quantum fluctuations. Particles and antiparticles appear and vanish.',
+    facts:['Gluons carry the strong force','Strong force grows with distance','Matter and energy are interchangeable here'],
+    dyk:'Over 99% of a proton\'s mass comes from gluon-field energy.',
+    note:'At this scale, "particle" is not a helpful word.' }
+];
+
+var QUIZ = [
+  { q:'How many electrons can the innermost shell (K) hold?', opts:['1','2','8','18'], a:1,
+    exp:'Correct! Shell K holds 2 electrons.' },
+  { q:'Sodium has 11 electrons. How are they arranged?', opts:['2, 8, 1','2, 7, 2','3, 8','1, 8, 2'], a:0,
+    exp:'Correct! 2 in K, 8 in L, 1 in M.' },
+  { q:'Which of these is a nonmetal?', opts:['Iron','Copper','Sulfur','Aluminium'], a:2,
+    exp:'Correct! Sulfur is a bright-yellow nonmetal.' },
+  { q:'A proton is made of which quarks?', opts:['Two down, one up','Two up, one down','Three up','Three down'], a:1,
+    exp:'Correct! Two up (+2/3) + one down (−1/3) = +1.' },
+  { q:'What force holds quarks together?', opts:['Gravity','Electromagnetic','Strong nuclear','Weak nuclear'], a:2,
+    exp:'Correct! Carried by gluons.' },
+  { q:'What is the black, soft form of carbon?', opts:['Diamond','Graphite','Coal ash','Charcoal'], a:1,
+    exp:'Correct! Graphite is pure carbon.' },
+  { q:'Where is most of an atom\'s mass?', opts:['In the electrons','In the nucleus','Spread evenly','In the cloud'], a:1,
+    exp:'Correct! Almost all mass sits in the nucleus.' },
+  { q:'How much of an atom is empty space?', opts:['50%','90%','99.99%+','0%'], a:2,
+    exp:'Correct! An atom is overwhelmingly empty.' }
+];
+
+// ---------------------------------------------------------------------------
+// Utility
+// ---------------------------------------------------------------------------
+function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+function damp(s,dt){ return 1 - Math.exp(-s*dt); }
+function smoothstep(x){ x = clamp(x,0,1); return x*x*(3-2*x); }
+
+function mulberry32(seed){
+  var a = seed >>> 0;
+  return function(){
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function latLonToVec3(lat, lon, r){
+  var phi = (lon + 180) * Math.PI / 180;
+  var theta = (90 - lat) * Math.PI / 180;
+  return new THREE.Vector3(
+    -r * Math.sin(theta) * Math.cos(phi),
+     r * Math.cos(theta),
+     r * Math.sin(theta) * Math.sin(phi)
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Shared textures
+// ---------------------------------------------------------------------------
+var GLOW_TEX = (function(){
+  var size = 256;
+  var cv = document.createElement('canvas'); cv.width = cv.height = size;
+  var g = cv.getContext('2d');
+  var grd = g.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+  grd.addColorStop(0,'rgba(255,255,255,1)');
+  grd.addColorStop(0.1,'rgba(255,255,255,0.72)');
+  grd.addColorStop(0.3,'rgba(255,255,255,0.22)');
+  grd.addColorStop(0.6,'rgba(255,255,255,0.06)');
+  grd.addColorStop(1,'rgba(255,255,255,0)');
+  g.fillStyle = grd;
+  g.beginPath(); g.arc(size/2,size/2,size/2,0,Math.PI*2); g.fill();
+  return new THREE.CanvasTexture(cv);
+})();
+
+function addGlow(parent, color, scale, opacity){
+  var s = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: GLOW_TEX, color: color, transparent: true, opacity: (opacity===undefined?0.75:opacity),
+    blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  s.scale.set(scale, scale, 1);
+  parent.add(s);
+  return s;
+}
+
+// ---------------------------------------------------------------------------
+// Three.js setup
+// ---------------------------------------------------------------------------
+var canvas = $('c');
+var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x03040a, 1);
+
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera(52, window.innerWidth/window.innerHeight, 0.0005, 8000);
+camera.position.set(0, 6, 30);
+
+scene.add(new THREE.AmbientLight(0x8899bb, 0.4));
+var sunDir = new THREE.DirectionalLight(0xfff2dc, 1.6); sunDir.position.set(40,18,22); scene.add(sunDir);
+var fill = new THREE.DirectionalLight(0x4a6bb0, 0.4); fill.position.set(-25,-8,-18); scene.add(fill);
+var camLight = new THREE.PointLight(0xbcd8ff, 1.0, 0, 0); scene.add(camLight);
+
+// ---------------------------------------------------------------------------
+// Starfield
+// ---------------------------------------------------------------------------
+(function(){
+  var r = mulberry32(20240517), N = 3000;
+  var pos = new Float32Array(N*3), col = new Float32Array(N*3);
+  var pal = [new THREE.Color(0xffffff), new THREE.Color(0xbcd8ff), new THREE.Color(0x9fd8ff),
+    new THREE.Color(0xd8c8ff), new THREE.Color(0xffe6c8)];
+  for (var i=0;i<N;i++){
+    var u = r()*2-1, th = r()*Math.PI*2, s = Math.sqrt(1-u*u);
+    var rad = 400 + r()*1200;
+    pos[i*3] = rad*s*Math.cos(th); pos[i*3+1] = rad*u; pos[i*3+2] = rad*s*Math.sin(th);
+    var c = pal[Math.floor(r()*pal.length)];
+    col[i*3] = c.r; col[i*3+1] = c.g; col[i*3+2] = c.b;
+  }
+  var g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  g.setAttribute('color', new THREE.BufferAttribute(col,3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({
+    size: 1.0, sizeAttenuation: true, vertexColors: true,
+    transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending
+  })));
+})();
+
+// ---------------------------------------------------------------------------
+// REALISTIC SPACE SUN — visible while viewing Earth
+// ---------------------------------------------------------------------------
+var spaceSun = new THREE.Group();
+spaceSun.position.set(-340, 175, -300);
+spaceSun.visible = false;
+scene.add(spaceSun);
+
+(function(){
+  var cv = document.createElement('canvas'); cv.width = 1024; cv.height = 512;
+  var g = cv.getContext('2d');
+
+  var grd = g.createRadialGradient(512, 256, 0, 512, 256, 520);
+  grd.addColorStop(0.00, '#fffce8');
+  grd.addColorStop(0.30, '#fff2b8');
+  grd.addColorStop(0.55, '#ffd060');
+  grd.addColorStop(0.80, '#ff9020');
+  grd.addColorStop(1.00, '#ff5a08');
+  g.fillStyle = grd; g.fillRect(0, 0, 1024, 512);
+
+  var r = mulberry32(1337);
+  // Granules
+  for (var i=0; i<4500; i++){
+    var x = r()*1024, y = r()*512, rad = 2 + r()*9;
+    var a = 0.07 + r()*0.16;
+    var col = r() < 0.55
+      ? 'rgba(255,255,235,' + a + ')'
+      : 'rgba(200,55,10,' + a + ')';
+    var gg = g.createRadialGradient(x, y, 0, x, y, rad);
+    gg.addColorStop(0, col);
+    gg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gg;
+    g.beginPath(); g.arc(x, y, rad, 0, Math.PI*2); g.fill();
+  }
+  // Sunspots
+  for (var s=0; s<10; s++){
+    var sx = 180 + r()*664, sy = 80 + r()*352, sr = 10 + r()*26;
+    var sg = g.createRadialGradient(sx, sy, 0, sx, sy, sr);
+    sg.addColorStop(0.0, 'rgba(50,8,0,0.8)');
+    sg.addColorStop(0.5, 'rgba(140,40,8,0.45)');
+    sg.addColorStop(1.0, 'rgba(255,120,20,0)');
+    g.fillStyle = sg;
+    g.beginPath(); g.arc(sx, sy, sr, 0, Math.PI*2); g.fill();
+  }
+  var tex = new THREE.CanvasTexture(cv);
+
+  var sunMat = new THREE.MeshBasicMaterial({
+    map: tex, transparent: true, opacity: 0, toneMapped: false
+  });
+  spaceSun.add(new THREE.Mesh(new THREE.SphereGeometry(26, 64, 48), sunMat));
+  spaceSun.userData.sunMat = sunMat;
+
+  // Coronae — three stacked additive halos
+  var c1 = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: GLOW_TEX, color: 0xffe8a8, transparent: true, opacity: 0,
+    blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false
+  }));
+  c1.scale.set(95, 95, 1); spaceSun.add(c1);
+  spaceSun.userData.c1 = c1;
+
+  var c2 = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: GLOW_TEX, color: 0xffb060, transparent: true, opacity: 0,
+    blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false
+  }));
+  c2.scale.set(200, 200, 1); spaceSun.add(c2);
+  spaceSun.userData.c2 = c2;
+
+  var c3 = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: GLOW_TEX, color: 0xff7a20, transparent: true, opacity: 0,
+    blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false
+  }));
+  c3.scale.set(360, 360, 1); spaceSun.add(c3);
+  spaceSun.userData.c3 = c3;
+
+  // Sunlight on Earth
+  var sunLight = new THREE.PointLight(0xfff2d8, 0, 0, 0);
+  spaceSun.add(sunLight);
+  spaceSun.userData.sunLight = sunLight;
+})();
+
+// ---------------------------------------------------------------------------
+// EARTH — procedural texture + optional real texture overlay
+// ---------------------------------------------------------------------------
+function makeEarthTexture(){
+  var cv = document.createElement('canvas'); cv.width = 2048; cv.height = 1024;
+  var g = cv.getContext('2d');
+
+  var og = g.createLinearGradient(0,0,0,1024);
+  og.addColorStop(0,'#062246'); og.addColorStop(0.35,'#0a3a7a');
+  og.addColorStop(0.5,'#155aa8'); og.addColorStop(0.65,'#0a3a7a');
+  og.addColorStop(1,'#062246');
+  g.fillStyle = og; g.fillRect(0,0,2048,1024);
+
+  function px(lat,lon){ return [(lon+180)/360*2048, (90-lat)/180*1024]; }
+  function poly(pts, fill){
+    g.fillStyle = fill; g.beginPath();
+    for (var i=0;i<pts.length;i++){
+      var p = px(pts[i][0], pts[i][1]);
+      if (i===0) g.moveTo(p[0],p[1]); else g.lineTo(p[0],p[1]);
+    }
+    g.closePath(); g.fill();
+  }
+
+  var L = '#3d6b32';
+  poly([[70,-168],[72,-140],[70,-120],[68,-100],[62,-80],[52,-60],[46,-56],[42,-70],[36,-76],
+    [30,-82],[25,-97],[20,-105],[15,-95],[8,-78],[8,-82],[10,-85],[15,-92],[20,-96],[26,-97],
+    [30,-83],[36,-76],[42,-70],[48,-52],[55,-60],[62,-72],[68,-80],[72,-95],[73,-120],[72,-140],[70,-168]], L);
+  poly([[83,-40],[80,-20],[72,-22],[60,-43],[60,-50],[65,-52],[72,-45],[78,-35],[83,-40]], '#dfeaf2');
+  poly([[12,-72],[10,-60],[5,-52],[-5,-35],[-10,-37],[-20,-40],[-30,-52],[-40,-62],
+    [-52,-68],[-55,-68],[-50,-75],[-40,-74],[-30,-71],[-20,-70],[-10,-78],[-5,-80],
+    [3,-78],[8,-76],[12,-72]], L);
+  poly([[37,-10],[35,10],[32,25],[30,35],[20,40],[10,45],[0,42],[-10,40],[-25,35],[-35,20],
+    [-34,18],[-30,15],[-20,12],[-10,8],[0,9],[5,-5],[5,-15],[15,-17],[25,-15],[33,-8],[37,-10]], '#6b7a3a');
+  poly([[32,-15],[30,10],[26,32],[18,30],[15,15],[15,-15],[32,-15]], 'rgba(200,170,90,0.55)');
+  poly([[60,-5],[65,15],[68,30],[70,60],[62,90],[55,40],[50,30],[45,15],[40,-8],[45,-10],[55,-10],[60,-5]], L);
+  poly([[75,60],[72,90],[70,120],[65,150],[60,175],[45,140],[40,130],[35,125],[28,120],[22,110],
+    [22,100],[10,100],[8,98],[20,90],[25,90],[22,88],[20,85],[10,80],[8,78],[20,75],[25,70],
+    [28,68],[30,72],[35,75],[40,80],[45,90],[50,90],[55,80],[60,60],[60,40],[65,40],[70,50],[75,60]], L);
+  poly([[35,72],[34,80],[32,88],[30,95],[28,95],[32,80],[35,72]], 'rgba(240,240,240,0.55)');
+  poly([[23.5,68.2],[24.4,71.0],[25.5,71.8],[28.0,70.0],[30.0,72.0],[32.0,74.5],[34.5,74.5],
+    [34.8,77.0],[32.5,79.0],[30.5,80.5],[28.0,82.0],[27.0,88.0],[26.5,89.5],[25.5,89.0],
+    [24.0,88.5],[22.0,89.0],[21.5,88.0],[22.0,87.0],[23.5,86.5],[25.0,84.0],[24.5,81.0],
+    [22.0,78.0],[18.5,78.0],[17.0,78.5],[15.5,78.5],[13.5,80.0],[11.0,79.5],[9.0,78.5],
+    [8.1,77.5],[10.0,76.2],[13.0,74.5],[15.5,73.5],[18.0,73.0],[20.0,71.0],[22.0,69.0]], '#5a8a3a');
+  poly([[-11,132],[-12,142],[-18,146],[-25,153],[-33,152],[-38,146],[-35,138],[-32,128],
+    [-22,114],[-14,124],[-11,132]], '#8a7030');
+  g.fillStyle = '#eef4fc'; g.fillRect(0,990,2048,34);
+  g.fillStyle = 'rgba(240,248,255,0.9)';
+  g.beginPath(); g.ellipse(200,990,400,40,0,0,Math.PI*2); g.fill();
+  g.beginPath(); g.ellipse(1024,995,500,35,0,0,Math.PI*2); g.fill();
+  g.beginPath(); g.ellipse(1820,990,400,40,0,0,Math.PI*2); g.fill();
+  g.beginPath(); g.ellipse(160,30,300,60,0,0,Math.PI*2); g.fill();
+  g.beginPath(); g.ellipse(1880,30,300,60,0,0,Math.PI*2); g.fill();
+
+  var dr = mulberry32(1234);
+  g.fillStyle = 'rgba(20,40,15,0.35)';
+  for (var j=0;j<900;j++){
+    var x = dr()*2048, y = 100 + dr()*850;
+    g.beginPath(); g.arc(x,y,1+dr()*3,0,Math.PI*2); g.fill();
+  }
+  return new THREE.CanvasTexture(cv);
+}
+
+function makeCloudTexture(){
+  var cv = document.createElement('canvas'); cv.width = 1024; cv.height = 512;
+  var g = cv.getContext('2d');
+  g.clearRect(0,0,1024,512);
+  var r = mulberry32(555);
+  for (var i=0;i<350;i++){
+    var x = r()*1024, y = 60+r()*392;
+    var rad = 15 + r()*55;
+    var a = 0.15 + r()*0.35;
+    var grd = g.createRadialGradient(x,y,0,x,y,rad);
+    grd.addColorStop(0,'rgba(255,255,255,'+a+')');
+    grd.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle = grd;
+    g.beginPath(); g.arc(x,y,rad,0,Math.PI*2); g.fill();
+  }
+  return new THREE.CanvasTexture(cv);
+}
+
+var earthScene = new THREE.Group();
+earthScene.name = 'earth';
+(function buildEarth(){
+  var R = 3.5;
+  var mat = new THREE.MeshPhongMaterial({
+    map: makeEarthTexture(), shininess: 12,
+    specular: new THREE.Color(0x2a3344), transparent: true, opacity: 1
+  });
+  var earthMesh = new THREE.Mesh(new THREE.SphereGeometry(R, 96, 64), mat);
+  earthMesh.rotation.y = 3.358;
+  earthScene.add(earthMesh);
+  earthScene.userData.earthMesh = earthMesh;
+  earthScene.userData.mat = mat;
+
+  // Try to load real texture from CDN (silent fallback)
+  var loader = new THREE.TextureLoader();
+  loader.setCrossOrigin('anonymous');
+  var urls = [
+    'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg',
+    'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg'
+  ];
+  var done = false;
+  urls.forEach(function(u){
+    if (done) return;
+    loader.load(u, function(tex){
+      if (done) return;
+      done = true; tex.anisotropy = 4;
+      mat.map = tex; mat.needsUpdate = true;
+    }, undefined, function(){ /* try next */ });
+  });
+
+  var cloudMat = new THREE.MeshPhongMaterial({
+    map: makeCloudTexture(), transparent: true, opacity: 0.32,
+    depthWrite: false
+  });
+  var clouds = new THREE.Mesh(new THREE.SphereGeometry(R*1.008, 64, 48), cloudMat);
+  clouds.rotation.y = 3.358;
+  earthScene.add(clouds);
+  earthScene.userData.clouds = clouds;
+  earthScene.userData.cloudMat = cloudMat;
+
+  var atmMat = new THREE.MeshBasicMaterial({
+    color: 0x5fa8ff, transparent: true, opacity: 0.14,
+    blending: THREE.AdditiveBlending, side: THREE.BackSide, depthWrite: false
+  });
+  earthScene.add(new THREE.Mesh(new THREE.SphereGeometry(R*1.12, 48, 32), atmMat));
+  earthScene.userData.atmMat = atmMat;
+})();
+scene.add(earthScene);
+
+// ---------------------------------------------------------------------------
+// TABLE SCENE — house, benches, elements, sun, mountains, trees
+// ---------------------------------------------------------------------------
+var tableScene = new THREE.Group();
+tableScene.name = 'table';
+tableScene.visible = false;
+
+// Sun (visible in table scene — unrelated to space sun)
+var sunGroup = new THREE.Group();
+sunGroup.position.set(38, 22, -55);
+(function(){
+  var cv = document.createElement('canvas'); cv.width = 512; cv.height = 256;
+  var g = cv.getContext('2d');
+  var grd = g.createRadialGradient(256,128,0,256,128,256);
+  grd.addColorStop(0,'#fffbe0'); grd.addColorStop(0.4,'#ffe9a0');
+  grd.addColorStop(0.75,'#ffb040'); grd.addColorStop(1,'#ff6a10');
+  g.fillStyle = grd; g.fillRect(0,0,512,256);
+  var r = mulberry32(42);
+  for (var i=0;i<1500;i++){
+    var x=r()*512, y=r()*256, rad=2+r()*6;
+    var a=0.06+r()*0.14;
+    var col = r()<0.5 ? 'rgba(255,255,240,'+a+')' : 'rgba(200,80,20,'+a+')';
+    var gg = g.createRadialGradient(x,y,0,x,y,rad);
+    gg.addColorStop(0,col); gg.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle = gg;
+    g.beginPath(); g.arc(x,y,rad,0,Math.PI*2); g.fill();
+  }
+  var tex = new THREE.CanvasTexture(cv);
+  var sunMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0 });
+  sunGroup.add(new THREE.Mesh(new THREE.SphereGeometry(5,48,32), sunMat));
+  sunGroup.userData.sunMat = sunMat;
+
+  var c1 = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: 0xffe090,
+    transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  c1.scale.set(34,34,1); sunGroup.add(c1);
+  var c2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: 0xff9040,
+    transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  c2.scale.set(70,70,1); sunGroup.add(c2);
+  sunGroup.userData.c1 = c1; sunGroup.userData.c2 = c2;
+})();
+scene.add(sunGroup);
+
+// Grass texture
+function makeGrassTexture(){
+  var cv = document.createElement('canvas'); cv.width = 512; cv.height = 512;
+  var g = cv.getContext('2d');
+  g.fillStyle = '#4a7a3a'; g.fillRect(0,0,512,512);
+  var r = mulberry32(7);
+  for (var i=0;i<4000;i++){
+    var x=r()*512, y=r()*512, s=r();
+    var col = s<0.35 ? 'rgba(60,100,50,'+(0.15+r()*0.25)+')'
+            : s<0.7  ? 'rgba(80,120,60,'+(0.1+r()*0.2)+')'
+                     : 'rgba(40,70,30,'+(0.1+r()*0.2)+')';
+    g.fillStyle = col;
+    g.beginPath(); g.arc(x,y,1+r()*2,0,Math.PI*2); g.fill();
+  }
+  var tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(20, 20);
+  return tex;
+}
+
+(function buildTable(){
+  // Sky
+  var skyMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    uniforms: {
+      top: { value: new THREE.Color(0x1a3a72) },
+      mid: { value: new THREE.Color(0xffc088) },
+      bot: { value: new THREE.Color(0x2a1810) }
+    },
+    vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+    fragmentShader: 'uniform vec3 top; uniform vec3 mid; uniform vec3 bot; varying vec3 vP; void main(){ float h = normalize(vP).y; vec3 c; if (h>0.0) c = mix(mid,top,h); else c = mix(mid,bot,-h); gl_FragColor = vec4(c,1.0); }',
+    transparent: true, opacity: 0
+  });
+  tableScene.add(new THREE.Mesh(new THREE.SphereGeometry(80,32,16), skyMat));
+
+  // Ground
+  var groundMat = new THREE.MeshStandardMaterial({
+    map: makeGrassTexture(), roughness: 0.95, transparent: true, opacity: 0
+  });
+  var ground = new THREE.Mesh(new THREE.PlaneGeometry(200,200), groundMat);
+  ground.rotation.x = -Math.PI/2; ground.position.y = -1.2;
+  tableScene.add(ground);
+
+  // Mountains — two ranges
+  var mtR = mulberry32(200);
+  var farMtMat = new THREE.MeshStandardMaterial({ color: 0x5a7090, roughness: 0.95, transparent: true, opacity: 0 });
+  var nearMtMat = new THREE.MeshStandardMaterial({ color: 0x4a5a40, roughness: 0.95, transparent: true, opacity: 0 });
+  for (var mi=0; mi<22; mi++){
+    var a = (mi/22)*Math.PI*2 + mtR()*0.2;
+    var h = 8 + mtR()*10, w = 12 + mtR()*8, rr = 70 + mtR()*15;
+    var cone = new THREE.Mesh(new THREE.ConeGeometry(w,h,5), farMtMat);
+    cone.position.set(Math.cos(a)*rr, -1.2+h/2, Math.sin(a)*rr);
+    cone.rotation.y = mtR()*Math.PI;
+    tableScene.add(cone);
+  }
+  for (var ni=0; ni<18; ni++){
+    var a2 = (ni/18)*Math.PI*2 + mtR()*0.3;
+    var h2 = 4 + mtR()*6, w2 = 7 + mtR()*5, r2 = 45 + mtR()*10;
+    var cone2 = new THREE.Mesh(new THREE.ConeGeometry(w2,h2,5), nearMtMat);
+    cone2.position.set(Math.cos(a2)*r2, -1.2+h2/2, Math.sin(a2)*r2);
+    cone2.rotation.y = mtR()*Math.PI;
+    tableScene.add(cone2);
+  }
+
+  // Trees
+  var trunkMat = new THREE.MeshStandardMaterial({ color: 0x5a3a20, roughness: 0.95, transparent: true, opacity: 0 });
+  var foliMat1 = new THREE.MeshStandardMaterial({ color: 0x2a5a2a, roughness: 0.9, transparent: true, opacity: 0 });
+  var foliMat2 = new THREE.MeshStandardMaterial({ color: 0x3a6a3a, roughness: 0.9, transparent: true, opacity: 0 });
+  for (var ti=0; ti<18; ti++){
+    var ta = mtR()*Math.PI*2, tr = 22 + mtR()*22;
+    var tx = Math.cos(ta)*tr, tz = Math.sin(ta)*tr;
+    if (Math.abs(tx) < 5 && Math.abs(tz) < 5) continue;
+    var tg = new THREE.Group();
+    tg.position.set(tx, -1.2, tz);
+    var th = 1 + mtR()*1.2;
+    var trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.16,th,6), trunkMat);
+    trunk.position.y = th/2; tg.add(trunk);
+    var fh = 1.5 + mtR()*1.2;
+    var f1 = new THREE.Mesh(new THREE.ConeGeometry(0.85,fh,7), foliMat1);
+    f1.position.y = th + fh*0.4; tg.add(f1);
+    var f2 = new THREE.Mesh(new THREE.ConeGeometry(0.65,fh*0.8,7), foliMat2);
+    f2.position.y = th + fh*0.85; tg.add(f2);
+    tableScene.add(tg);
+  }
+
+  // ============ BRICK HOUSE ============
+  var house = new THREE.Group();
+  house.position.set(-2.5, 0, -2.2);
+  house.rotation.y = 0.15;
+  tableScene.add(house);
+
+  // Brown brick wall texture
+  function makeBrickTex(){
+    var cv = document.createElement('canvas'); cv.width = 512; cv.height = 512;
+    var g = cv.getContext('2d');
+    // Mortar base
+    g.fillStyle = '#8a7560'; g.fillRect(0,0,512,512);
+    var r = mulberry32(99);
+    var bh = 22, bw = 62, gap = 3;
+    var rows = Math.ceil(512 / (bh + gap));
+    for (var row = 0; row < rows; row++){
+      var y = row * (bh + gap);
+      var offset = (row % 2 === 0) ? 0 : -(bw + gap) / 2;
+      for (var col = -1; col < Math.ceil(512 / (bw + gap)) + 1; col++){
+        var x = col * (bw + gap) + offset;
+        // Varied brick brown
+        var v = 0.72 + r() * 0.5;
+        var rb = Math.floor(150 * v);
+        var gb = Math.floor(78 * v);
+        var bb = Math.floor(52 * v);
+        g.fillStyle = 'rgb(' + rb + ',' + gb + ',' + bb + ')';
+        g.fillRect(x, y, bw, bh);
+        // Shadow under brick (mortar recess)
+        g.fillStyle = 'rgba(0,0,0,0.3)';
+        g.fillRect(x, y + bh - 1, bw, 2);
+        // Highlight on top edge
+        g.fillStyle = 'rgba(255,220,180,0.14)';
+        g.fillRect(x, y, bw, 1);
+        // Mottling on the brick face
+        for (var k=0; k<12; k++){
+          var mx = x + r()*bw, my = y + r()*bh;
+          g.fillStyle = 'rgba(' + Math.floor(80 + r()*40) + ',' +
+            Math.floor(40 + r()*22) + ',' + Math.floor(20 + r()*15) + ',' + (r()*0.35) + ')';
+          g.beginPath(); g.arc(mx, my, 1 + r()*2, 0, Math.PI*2); g.fill();
+        }
+      }
+    }
+    var tex = new THREE.CanvasTexture(cv);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(1.6, 1.0);
+    return tex;
+  }
+  var wallTex = makeBrickTex();
+
+  var lowerWallMat = new THREE.MeshStandardMaterial({
+    map: wallTex, roughness: 0.88, metalness: 0.02,
+    transparent: true, opacity: 0
+  });
+  var lowerWalls = new THREE.Mesh(new THREE.BoxGeometry(4.4,1.7,3.2), lowerWallMat);
+  lowerWalls.position.y = -0.15; house.add(lowerWalls);
+
+  var upperWallMat = new THREE.MeshStandardMaterial({
+    map: wallTex, roughness: 0.88, metalness: 0.02,
+    transparent: true, opacity: 0
+  });
+  var upperWalls = new THREE.Mesh(new THREE.BoxGeometry(4.4,0.9,3.2), upperWallMat);
+  upperWalls.position.y = 1.15; house.add(upperWalls);
+
+  var trimMat = new THREE.MeshStandardMaterial({ color: 0x6a4830, roughness: 0.85, transparent: true, opacity: 0 });
+  [[-2.2,-0.15,-1.6],[2.2,-0.15,-1.6],[-2.2,-0.15,1.6],[2.2,-0.15,1.6]].forEach(function(p){
+    var t = new THREE.Mesh(new THREE.BoxGeometry(0.1,2.6,0.1), trimMat);
+    t.position.set(p[0],p[1],p[2]); house.add(t);
+  });
+
+  // Roof
+  var roofMat = new THREE.MeshStandardMaterial({ color: 0xa04028, roughness: 0.85, transparent: true, opacity: 0 });
+  var roof = new THREE.Mesh(new THREE.ConeGeometry(3.35,1.5,4), roofMat);
+  roof.position.y = 2.35; roof.rotation.y = Math.PI/4;
+  house.add(roof);
+
+  var ridge = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.18,0.18), roofMat);
+  ridge.position.y = 3.1; house.add(ridge);
+
+  // Chimney
+  var chimMat = new THREE.MeshStandardMaterial({ color: 0x8a4830, roughness: 0.9, transparent: true, opacity: 0 });
+  var chimney = new THREE.Mesh(new THREE.BoxGeometry(0.5,1.5,0.5), chimMat);
+  chimney.position.set(1.3,2.45,-0.7); house.add(chimney);
+  var chimCapMat = new THREE.MeshStandardMaterial({ color: 0x4a2820, roughness: 0.85, transparent: true, opacity: 0 });
+  var chimCap = new THREE.Mesh(new THREE.BoxGeometry(0.68,0.16,0.68), chimCapMat);
+  chimCap.position.set(1.3,3.22,-0.7); house.add(chimCap);
+
+  // Door
+  var doorMat = new THREE.MeshStandardMaterial({ color: 0x4a3020, roughness: 0.75, transparent: true, opacity: 0 });
+  var door = new THREE.Mesh(new THREE.BoxGeometry(0.9,1.65,0.06), doorMat);
+  door.position.set(-0.7,-0.35,-1.62); house.add(door);
+  var knobMat = new THREE.MeshStandardMaterial({ color: 0xd4a850, metalness: 0.9, roughness: 0.25, transparent: true, opacity: 0 });
+  var knob = new THREE.Mesh(new THREE.SphereGeometry(0.055,12,12), knobMat);
+  knob.position.set(-0.98,-0.35,-1.68); house.add(knob);
+
+  // Glass windows (real glass)
+  var glassMat = new THREE.MeshPhongMaterial({
+    color: 0x1a2a3a,
+    emissive: 0x3a2410,
+    emissiveIntensity: 0.7,
+    shininess: 220,
+    specular: 0xffffff,
+    transparent: true,
+    opacity: 0.65,
+    side: THREE.DoubleSide
+  });
+  var frameMat = new THREE.MeshStandardMaterial({ color: 0x5a3a20, roughness: 0.8, transparent: true, opacity: 0 });
+  var shutterMat = new THREE.MeshStandardMaterial({ color: 0x2a5a2a, roughness: 0.85, transparent: true, opacity: 0 });
+  var boxMat = new THREE.MeshStandardMaterial({ color: 0x6a3a20, roughness: 0.9, transparent: true, opacity: 0 });
+  var bloomMat = new THREE.MeshStandardMaterial({ color: 0xff5c7a, emissive: 0xff2050, emissiveIntensity: 0.3, roughness: 0.7, transparent: true, opacity: 0 });
+  var bloomMat2 = new THREE.MeshStandardMaterial({ color: 0xffdd55, emissive: 0xffaa20, emissiveIntensity: 0.3, roughness: 0.7, transparent: true, opacity: 0 });
+
+  [[-1.6,0.6],[0.6,0.6]].forEach(function(pos){
+    var wx = pos[0], wy = pos[1];
+    var glass = new THREE.Mesh(new THREE.BoxGeometry(0.75,0.75,0.05), glassMat);
+    glass.position.set(wx,wy,-1.62); house.add(glass);
+    [[0,0.4,0.86,0.06],[0,-0.4,0.86,0.06],[-0.4,0,0.06,0.86],[0.4,0,0.06,0.86]].forEach(function(f){
+      var fr = new THREE.Mesh(new THREE.BoxGeometry(f[2],f[3],0.07), frameMat);
+      fr.position.set(wx+f[0], wy+f[1], -1.62); house.add(fr);
+    });
+    [-0.5,0.5].forEach(function(side){
+      var sh = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.85,0.05), shutterMat);
+      sh.position.set(wx+side, wy, -1.63); house.add(sh);
+    });
+    var box = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.16,0.24), boxMat);
+    box.position.set(wx, wy-0.5, -1.5); house.add(box);
+    for (var f2=0; f2<6; f2++){
+      var bl = new THREE.Mesh(new THREE.SphereGeometry(0.05,6,6), f2%2===0?bloomMat:bloomMat2);
+      bl.position.set(wx-0.35+f2*0.14, wy-0.38, -1.45); house.add(bl);
+    }
+  });
+
+  // Porch light
+  var porchMat = new THREE.MeshStandardMaterial({ color: 0xffe0a8, emissive: 0xffb850, emissiveIntensity: 1.2, roughness: 0.3, transparent: true, opacity: 0 });
+  var porch = new THREE.Mesh(new THREE.SphereGeometry(0.08,10,10), porchMat);
+  porch.position.set(-1.9,1.1,-1.62); house.add(porch);
+  var porchLight = new THREE.PointLight(0xffb850, 0.8, 3, 2);
+  porchLight.position.copy(porch.position); house.add(porchLight);
+  tableScene.userData.porchLight = porchLight;
+
+  // Fence
+  var fenceMat = new THREE.MeshStandardMaterial({ color: 0xd8c8a0, roughness: 0.9, transparent: true, opacity: 0 });
+  for (var fx=-3.2; fx<=-0.8; fx+=0.35){
+    var pk = new THREE.Mesh(new THREE.BoxGeometry(0.08,0.55,0.06), fenceMat);
+    pk.position.set(fx,-0.9,1.9); tableScene.add(pk);
+  }
+  var railT = new THREE.Mesh(new THREE.BoxGeometry(2.6,0.05,0.06), fenceMat);
+  railT.position.set(-2,-0.7,1.9); tableScene.add(railT);
+
+  // Bushes
+  var bushMat = new THREE.MeshStandardMaterial({ color: 0x2a5a2a, roughness: 0.9, transparent: true, opacity: 0 });
+  [[-2.6,-0.9,-1.0],[-1.0,-0.9,-1.0],[-4.0,-0.9,-1.0]].forEach(function(p){
+    var b = new THREE.Mesh(new THREE.SphereGeometry(0.3,8,6), bushMat);
+    b.position.set(p[0],p[1],p[2]); b.scale.y = 0.7; tableScene.add(b);
+  });
+
+  // ============ BENCHES ============
+  var woodMat = new THREE.MeshStandardMaterial({ color: 0x8a5a2a, roughness: 0.7, transparent: true, opacity: 0 });
+  var woodDarkMat = new THREE.MeshStandardMaterial({ color: 0x5a3a1a, roughness: 0.8, transparent: true, opacity: 0 });
+
+  function bench(x, z){
+    var g = new THREE.Group(); g.position.set(x,0,z); tableScene.add(g);
+    var top = new THREE.Mesh(new THREE.BoxGeometry(4.6,0.14,1.6), woodMat);
+    top.position.y = -0.35; g.add(top);
+    [[-2.1,-0.9,-0.7],[2.1,-0.9,-0.7],[-2.1,-0.9,0.7],[2.1,-0.9,0.7]].forEach(function(p){
+      var leg = new THREE.Mesh(new THREE.BoxGeometry(0.14,1.4,0.14), woodDarkMat);
+      leg.position.set(p[0],p[1],p[2]); g.add(leg);
+    });
+    return g;
+  }
+  var leftBench = bench(0.5, 0.4);
+  var rightBench = bench(0.5, 2.6);
+
+  // ============ METAL INGOTS ============
+  function roundedBox(w,h,d,rad,seg){
+    var geo = new THREE.BoxGeometry(w,h,d,seg,seg,seg);
+    var pos = geo.attributes.position;
+    var v = new THREE.Vector3();
+    var iw = w/2-rad, ih = h/2-rad, id = d/2-rad;
+    for (var i=0;i<pos.count;i++){
+      v.set(pos.getX(i), pos.getY(i), pos.getZ(i));
+      var cx = Math.max(-iw,Math.min(iw,v.x));
+      var cy = Math.max(-ih,Math.min(ih,v.y));
+      var cz = Math.max(-id,Math.min(id,v.z));
+      var dx = v.x-cx, dy = v.y-cy, dz = v.z-cz;
+      var len = Math.sqrt(dx*dx+dy*dy+dz*dz);
+      if (len > 0.0001){
+        var s = rad/len;
+        v.set(cx+dx*s, cy+dy*s, cz+dz*s);
+      }
+      pos.setXYZ(i, v.x, v.y, v.z);
+    }
+    geo.computeVertexNormals();
+    return geo;
+  }
+
+  var metals = ELEMENTS.filter(function(e){ return e.grp==='metal'; });
+  var metalMeshes = [];
+  var mSp = 0.62, mBX = -(metals.length-1)*mSp/2;
+  metals.forEach(function(el, i){
+    var geo = roundedBox(0.42,0.30,0.50,0.05,4);
+    var mat = new THREE.MeshStandardMaterial({
+      color: el.color, emissive: el.emis, emissiveIntensity: 0.14,
+      metalness: el.metal, roughness: el.rough,
+      transparent: true, opacity: 0
+    });
+    var ingot = new THREE.Mesh(geo, mat);
+    ingot.position.set(mBX + i*mSp, -0.11, 0);
+    ingot.rotation.y = (i%2)*0.2 - 0.1;
+    leftBench.add(ingot);
+    var hb = new THREE.Mesh(
+      new THREE.BoxGeometry(0.6,0.55,0.7),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    hb.position.copy(ingot.position);
+    hb.userData.elIdx = ELEMENTS.indexOf(el);
+    leftBench.add(hb);
+    metalMeshes.push({ mesh: ingot, hitbox: hb, mat: mat, el: el });
+  });
+  tableScene.userData.metals = metalMeshes;
+
+  // ============ NONMETAL VESSELS ============
+  var nonmetals = ELEMENTS.filter(function(e){ return e.grp==='nonmetal'; });
+  var nonMeshes = [];
+  var nSp = 0.62, nBX = -(nonmetals.length-1)*nSp/2;
+  nonmetals.forEach(function(el, i){
+    var vg = new THREE.Group();
+    vg.position.set(nBX + i*nSp, -0.28, 0);
+    rightBench.add(vg);
+
+    var sMat = new THREE.MeshStandardMaterial({
+      color: el.color, emissive: el.emis, emissiveIntensity: 0.18,
+      metalness: el.metal, roughness: el.rough,
+      transparent: true, opacity: 0
+    });
+    var vType = el.vessel || 'jar';
+    var glassVesselMat = new THREE.MeshPhysicalMaterial({
+      color: 0xa8c8e0, transparent: true, opacity: 0,
+      roughness: 0.05, transmission: 0.6, side: THREE.DoubleSide
+    });
+    var corkMat = new THREE.MeshStandardMaterial({ color: 0x8a5a2a, roughness: 0.9, transparent: true, opacity: 0 });
+
+    if (vType === 'jar'){
+      var jar = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.42,20,1,true), glassVesselMat);
+      jar.position.y = 0.21; vg.add(jar);
+      var jb = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.02,20), glassVesselMat);
+      jb.position.y = 0.01; vg.add(jb);
+      var cork = new THREE.Mesh(new THREE.CylinderGeometry(0.19,0.19,0.08,14), corkMat);
+      cork.position.y = 0.46; vg.add(cork);
+      var contents = new THREE.Mesh(new THREE.CylinderGeometry(0.19,0.19,0.24,20), sMat);
+      contents.position.y = 0.14; vg.add(contents);
+    } else if (vType === 'bowl'){
+      var bowlMat = new THREE.MeshStandardMaterial({ color: 0x6a4830, roughness: 0.7, transparent: true, opacity: 0 });
+      var bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.18,0.20,24), bowlMat);
+      bowl.position.y = 0.10; vg.add(bowl);
+      var contents2 = new THREE.Mesh(new THREE.SphereGeometry(0.17,12,8,0,Math.PI*2,0,Math.PI/2), sMat);
+      contents2.position.y = 0.20; vg.add(contents2);
+    } else if (vType === 'vial'){
+      var amberMat = new THREE.MeshPhysicalMaterial({
+        color: 0xc08040, transparent: true, opacity: 0,
+        roughness: 0.1, transmission: 0.5, side: THREE.DoubleSide
+      });
+      var vial = new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.10,0.36,16,1,true), amberMat);
+      vial.position.y = 0.18; vg.add(vial);
+      var vb = new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.10,0.02,16), amberMat);
+      vb.position.y = 0.01; vg.add(vb);
+      var capMat = new THREE.MeshStandardMaterial({ color: 0x202020, roughness: 0.7, transparent: true, opacity: 0 });
+      var cap = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,0.06,14), capMat);
+      cap.position.y = 0.39; vg.add(cap);
+      var contentsV = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.20,16), sMat);
+      contentsV.position.y = 0.12; vg.add(contentsV);
+    } else {
+      var dishMat = new THREE.MeshStandardMaterial({ color: 0x808890, metalness: 0.85, roughness: 0.3, transparent: true, opacity: 0 });
+      var dish = new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.22,0.08,24), dishMat);
+      dish.position.y = 0.04; vg.add(dish);
+      var chunk = new THREE.Mesh(roundedBox(0.28,0.14,0.24,0.03,3), sMat);
+      chunk.position.y = 0.14; vg.add(chunk);
+    }
+
+    // Big invisible hitbox for the whole vessel
+    var hit = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.30,0.30,0.65,10),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    hit.position.y = 0.25;
+    hit.userData.elIdx = ELEMENTS.indexOf(el);
+    vg.add(hit);
+
+    nonMeshes.push({ mesh: vg, hitbox: hit, mat: sMat, el: el });
+  });
+  tableScene.userData.nonmetals = nonMeshes;
+
+  // Collect all fade materials
+  var fadeMats = [skyMat, groundMat, farMtMat, nearMtMat, trunkMat, foliMat1, foliMat2,
+    lowerWallMat, upperWallMat, trimMat, roofMat, chimMat, chimCapMat, doorMat, knobMat,
+    glassMat, frameMat, shutterMat, boxMat, bloomMat, bloomMat2, porchMat,
+    fenceMat, bushMat, woodMat, woodDarkMat];
+  metalMeshes.forEach(function(m){ fadeMats.push(m.mat); });
+  nonMeshes.forEach(function(m){ fadeMats.push(m.mat); });
+  // Also collect vessel material types
+  tableScene.traverse(function(child){
+    if (child.material && fadeMats.indexOf(child.material) === -1){
+      if (child.material.type === 'MeshPhysicalMaterial'){
+        fadeMats.push(child.material);
+      }
+    }
+  });
+
+  tableScene.userData.fadeMats = fadeMats;
+})();
+scene.add(tableScene);
+
+// ---------------------------------------------------------------------------
+// ATOM SCENE
+// ---------------------------------------------------------------------------
+var atomScene = new THREE.Group();
+atomScene.name = 'atom';
+atomScene.visible = false;
+
+var atomPivot = new THREE.Group();
+atomScene.add(atomPivot);
+atomScene.userData.pivot = atomPivot;
+atomScene.userData.electrons = [];
+atomScene.userData.shellMats = [];
+atomScene.userData.nucleons = [];
+atomScene.userData.quarkGroup = null;
+atomScene.userData.shellRadii = [0.85, 1.5, 2.15, 2.8, 3.45];
+scene.add(atomScene);
+
+var currentElement = ELEMENTS[0];
+
+function disposeObj(o){
+  o.traverse(function(c){
+    if (c.geometry) c.geometry.dispose();
+    if (c.material){
+      var ms = Array.isArray(c.material) ? c.material : [c.material];
+      ms.forEach(function(m){ m.dispose(); });
+    }
+  });
+}
+
+function buildQuarks(){
+  var g = new THREE.Group();
+  g.visible = false;
+
+  var confineMat = new THREE.MeshBasicMaterial({
+    color: 0xffb45c, transparent: true, opacity: 0,
+    wireframe: true, depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.13,12,8), confineMat));
+  g.userData.confineMat = confineMat;
+
+  var rr = mulberry32(777), N = 220;
+  var gpos = new Float32Array(N*3);
+  for (var i=0;i<N;i++){
+    var u = rr()*2-1, th = rr()*Math.PI*2, s = Math.sqrt(1-u*u);
+    var rad = 0.12 * Math.cbrt(rr());
+    gpos[i*3] = rad*s*Math.cos(th); gpos[i*3+1] = rad*u; gpos[i*3+2] = rad*s*Math.sin(th);
+  }
+  var gg = new THREE.BufferGeometry();
+  gg.setAttribute('position', new THREE.BufferAttribute(gpos,3));
+  var gluonMat = new THREE.PointsMaterial({
+    size: 0.0055, sizeAttenuation: true, color: 0xffd27f,
+    transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  var gluonField = new THREE.Points(gg, gluonMat);
+  g.add(gluonField);
+  g.userData.gluonMat = gluonMat;
+
+  var defs = [
+    { base: new THREE.Vector3(0.075, 0.025, 0.008), color: 0xff8a4c, phase: 0.0 },
+    { base: new THREE.Vector3(-0.04, 0.06, -0.026), color: 0xff8a4c, phase: 2.1 },
+    { base: new THREE.Vector3(-0.014, -0.065, 0.04), color: 0x4fd1ff, phase: 4.2 }
+  ];
+  g.userData.quarks = [];
+  g.userData.quarkMats = [gluonMat, confineMat];
+  defs.forEach(function(d){
+    var qMat = new THREE.MeshStandardMaterial({
+      color: d.color, emissive: d.color, emissiveIntensity: 2.4,
+      roughness: 0.25, toneMapped: false, transparent: true, opacity: 0
+    });
+    var q = new THREE.Mesh(new THREE.SphereGeometry(0.018,16,16), qMat);
+    q.position.copy(d.base);
+    g.add(q);
+    g.userData.quarkMats.push(qMat);
+    var qgMat = new THREE.SpriteMaterial({
+      map: GLOW_TEX, color: d.color, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    var qg = new THREE.Sprite(qgMat);
+    qg.scale.set(0.1,0.1,1); qg.position.copy(d.base);
+    g.add(qg);
+    g.userData.quarkMats.push(qgMat);
+    g.userData.quarks.push({ mesh: q, def: d, glow: qg });
+  });
+
+  g.userData.seaQuarks = [];
+  var sr = mulberry32(1999);
+  for (var si=0; si<8; si++){
+    var seaColor = si % 2 === 0 ? 0xffa0ff : 0x9dffe0;
+    var sm = new THREE.MeshStandardMaterial({
+      color: seaColor, emissive: seaColor, emissiveIntensity: 2.4,
+      roughness: 0.3, toneMapped: false, transparent: true, opacity: 0
+    });
+    var sq = new THREE.Mesh(new THREE.SphereGeometry(0.0075,8,8), sm);
+    var u2 = sr()*2-1, th2 = sr()*Math.PI*2, s2 = Math.sqrt(1-u2*u2);
+    var r2 = 0.09 * sr();
+    sq.position.set(r2*s2*Math.cos(th2), r2*u2, r2*s2*Math.sin(th2));
+    g.add(sq);
+    g.userData.quarkMats.push(sm);
+    g.userData.seaQuarks.push({ mesh: sq, mat: sm, basePos: sq.position.clone(),
+      phase: sr()*Math.PI*2, speed: 1.5 + sr()*2 });
+  }
+
+  var PPL = 14;
+  g.userData.lines = [];
+  g.userData.lineHitboxes = [];
+  var PAIRS = [[0,1],[1,2],[2,0]];
+  PAIRS.forEach(function(pair){
+    var lg = new THREE.BufferGeometry();
+    lg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(PPL*3), 3));
+    var lm = new THREE.LineBasicMaterial({
+      color: 0xffb45c, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    g.add(new THREE.Line(lg, lm));
+    g.userData.quarkMats.push(lm);
+    g.userData.lines.push({ geo: lg, mat: lm, pair: pair, PPL: PPL });
+    var hb = new THREE.Mesh(
+      new THREE.SphereGeometry(0.04,6,6),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    hb.userData.isBond = true;
+    g.add(hb);
+    g.userData.lineHitboxes.push(hb);
+  });
+
+  return g;
+}
+
+function rebuildAtom(el){
+  while (atomPivot.children.length > 0){
+    var c = atomPivot.children[0];
+    atomPivot.remove(c);
+    disposeObj(c);
+  }
+  atomScene.userData.electrons = [];
+  atomScene.userData.shellMats = [];
+  atomScene.userData.nucleons = [];
+  atomScene.userData.quarkGroup = null;
+
+  var radii = atomScene.userData.shellRadii;
+
+  el.shells.forEach(function(count, sIdx){
+    var R = radii[sIdx] || (radii[radii.length-1] + sIdx*0.55);
+
+    var shellMat = new THREE.MeshBasicMaterial({
+      color: el.color, transparent: true, opacity: 0,
+      side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending
+    });
+    atomPivot.add(new THREE.Mesh(new THREE.SphereGeometry(R,32,24), shellMat));
+    atomScene.userData.shellMats.push({ mat: shellMat, kind: 's', shell: sIdx });
+
+    var ringMat = new THREE.MeshBasicMaterial({
+      color: el.color, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending
+    });
+    var ring = new THREE.Mesh(new THREE.TorusGeometry(R, 0.006, 6, 128), ringMat);
+    ring.rotation.x = -Math.PI/2;
+    atomPivot.add(ring);
+    atomScene.userData.shellMats.push({ mat: ringMat, kind: 'r', shell: sIdx });
+
+    var rr = mulberry32(1000 + sIdx*41);
+    for (var i=0; i<count; i++){
+      var orbit = new THREE.Group();
+      orbit.rotation.z = (rr()-0.5)*1.2;
+      orbit.rotation.y = (rr()-0.5)*1.2;
+      atomPivot.add(orbit);
+
+      var eMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
+      var e = new THREE.Mesh(new THREE.SphereGeometry(0.05,14,14), eMat);
+      e.position.set(R, 0, 0);
+      orbit.add(e);
+
+      var glowMat = new THREE.SpriteMaterial({
+        map: GLOW_TEX, color: 0x8fefff, transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      });
+      var glow = new THREE.Sprite(glowMat);
+      glow.scale.set(0.42,0.42,1);
+      glow.position.set(R,0,0);
+      orbit.add(glow);
+
+      var SEG = 20, ARC = 0.9;
+      var tpos = [], tcol = [];
+      var bc = new THREE.Color(0x8fefff);
+      for (var k=0; k<=SEG; k++){
+        var t = k/SEG, a = -ARC*(1-t);
+        tpos.push(Math.cos(a)*R, 0, Math.sin(a)*R);
+        var f = Math.pow(t, 2.4);
+        tcol.push(bc.r*f, bc.g*f, bc.b*f);
+      }
+      var tg = new THREE.BufferGeometry();
+      tg.setAttribute('position', new THREE.Float32BufferAttribute(tpos,3));
+      tg.setAttribute('color', new THREE.Float32BufferAttribute(tcol,3));
+      var trailMat = new THREE.LineBasicMaterial({
+        vertexColors: true, transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      });
+      orbit.add(new THREE.Line(tg, trailMat));
+
+      atomScene.userData.electrons.push({
+        orbit: orbit, mesh: e, glow: glow, radius: R,
+        speed: 0.35/(sIdx+1) * (1 + (i%3)*0.12),
+        phase: (i/count)*Math.PI*2, shellIndex: sIdx,
+        elMat: eMat, glowMat: glowMat, trailMat: trailMat
+      });
+    }
+  });
+
+  var nuc = new THREE.Group();
+  atomPivot.add(nuc);
+
+  var total = el.protons + el.neutrons;
+  var nR = total <= 20 ? 0.075 : total <= 40 ? 0.062 : 0.05;
+  var clusterR = 0.13 + Math.cbrt(total) * (total <= 20 ? 0.055 : total <= 40 ? 0.048 : 0.042);
+
+  var positions = [];
+  var rng = mulberry32(el.z * 13 + 7);
+  var minD = nR * 1.75;
+  var tries = 0;
+  while (positions.length < total && tries < 20000){
+    tries++;
+    var u = rng()*2-1, th = rng()*Math.PI*2, s = Math.sqrt(1-u*u);
+    var r = clusterR * Math.cbrt(rng());
+    var cand = new THREE.Vector3(r*s*Math.cos(th), r*s*Math.sin(th), r*u);
+    var ok = true;
+    for (var m=0; m<positions.length; m++){
+      if (positions[m].distanceTo(cand) < minD){ ok=false; break; }
+    }
+    if (ok) positions.push(cand);
+  }
+  while (positions.length < total){
+    var u2 = rng()*2-1, th2 = rng()*Math.PI*2, s2 = Math.sqrt(1-u2*u2);
+    var r2 = clusterR * 1.4 * Math.cbrt(rng());
+    positions.push(new THREE.Vector3(r2*s2*Math.cos(th2), r2*s2*Math.sin(th2), r2*u2));
+  }
+
+  var assign = [];
+  var pLeft = el.protons, nLeft = el.neutrons;
+  for (var ii=0; ii<total; ii++){
+    if (ii === 0){ assign.push('p'); pLeft--; continue; }
+    if (pLeft > 0 && (nLeft === 0 || ii % 2 === 0)){ assign.push('p'); pLeft--; }
+    else if (nLeft > 0){ assign.push('n'); nLeft--; }
+    else { assign.push('p'); pLeft--; }
+  }
+
+  for (var n=0; n<total; n++){
+    var isP = assign[n] === 'p';
+    var pal = isP
+      ? { core: 0xff5580, emissive: 0xff2050, glow: 0xff6a90 }
+      : { core: 0x8ea2c8, emissive: 0x3f5680, glow: 0x9db4dc };
+    var nMat = new THREE.MeshStandardMaterial({
+      color: pal.core, emissive: pal.emissive, emissiveIntensity: 1.0,
+      roughness: 0.4, metalness: 0.08, transparent: true, opacity: 0
+    });
+    var nMesh = new THREE.Mesh(new THREE.SphereGeometry(nR,14,14), nMat);
+    nMesh.position.copy(positions[n]);
+    nuc.add(nMesh);
+
+    var glowMat2 = new THREE.SpriteMaterial({
+      map: GLOW_TEX, color: pal.glow, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    var gs = new THREE.Sprite(glowMat2);
+    gs.scale.set(nR*4.2, nR*4.2, 1);
+    gs.position.copy(positions[n]);
+    nuc.add(gs);
+
+    var markerMat = new THREE.MeshBasicMaterial({
+      color: isP ? 0xffffff : 0x0a1220, transparent: true, opacity: 0
+    });
+    var mk = new THREE.Mesh(new THREE.SphereGeometry(nR*0.35,8,8), markerMat);
+    mk.position.set(0, nR*0.65, 0);
+    nMesh.add(mk);
+
+    var entry = {
+      mesh: nMesh, mat: nMat, glowMat: glowMat2, markerMat: markerMat,
+      isProton: isP, isFocus: (n === 0 && isP)
+    };
+
+    if (entry.isFocus){
+      entry.quarkGroup = buildQuarks();
+      nMesh.add(entry.quarkGroup);
+      atomScene.userData.quarkGroup = entry.quarkGroup;
+    }
+
+    atomScene.userData.nucleons.push(entry);
+  }
+}
+rebuildAtom(currentElement);
+
+// ---------------------------------------------------------------------------
+// Labels
+// ---------------------------------------------------------------------------
+var labelsLayer = $('labels');
+var labels = [];
+function addLabel(text, sub, anchorFn, visibleFn, accent, isSym){
+  var el = document.createElement('div');
+  el.className = 'lbl' + (isSym ? ' sym' : '');
+  if (accent) el.style.borderColor = accent;
+  el.innerHTML = text + (sub ? '<span class="s">' + sub + '</span>' : '');
+  labelsLayer.appendChild(el);
+  labels.push({ el: el, anchor: anchorFn, show: visibleFn });
+}
+
+var R_EARTH = 3.5;
+function earthLocal(local){
+  var em = earthScene.userData.earthMesh;
+  if (!em) return null;
+  var p = local.clone();
+  em.localToWorld(p);
+  return p;
+}
+function earthAt(lat, lon, mult){
+  return latLonToVec3(lat, lon, R_EARTH * (mult || 1.03));
+}
+
+addLabel('Asia',       'largest', function(){ return earthLocal(earthAt(35,90)); },   function(){ return state.level===1 && earthScene.visible; }, '#5fe3ff');
+addLabel('Africa',     '',        function(){ return earthLocal(earthAt(5,20)); },    function(){ return state.level===1 && earthScene.visible; }, '#5fe3ff');
+addLabel('Europe',     '',        function(){ return earthLocal(earthAt(50,15)); },   function(){ return state.level===1 && earthScene.visible; }, '#5fe3ff');
+addLabel('N. America', '',        function(){ return earthLocal(earthAt(40,-100)); }, function(){ return state.level===1 && earthScene.visible; }, '#5fe3ff');
+addLabel('S. America', '',        function(){ return earthLocal(earthAt(-15,-60)); }, function(){ return state.level===1 && earthScene.visible; }, '#5fe3ff');
+addLabel('Australia',  '',        function(){ return earthLocal(earthAt(-25,135)); }, function(){ return state.level===1 && earthScene.visible; }, '#5fe3ff');
+addLabel('Antarctica', '',        function(){ return earthLocal(earthAt(-82,0)); },   function(){ return state.level===1 && earthScene.visible; }, '#5fe3ff');
+
+ELEMENTS.filter(function(e){return e.grp==='metal';}).forEach(function(el, i){
+  addLabel(el.symbol, el.name, function(){
+    var ms = tableScene.userData.metals;
+    if (!ms || !ms[i]) return null;
+    var p = new THREE.Vector3();
+    ms[i].mesh.getWorldPosition(p); p.y += 0.35; return p;
+  }, function(){ return state.level === 5 && tableScene.visible; }, el.colorCss, true);
+});
+ELEMENTS.filter(function(e){return e.grp==='nonmetal';}).forEach(function(el, i){
+  addLabel(el.symbol, el.name, function(){
+    var ms = tableScene.userData.nonmetals;
+    if (!ms || !ms[i]) return null;
+    var p = new THREE.Vector3();
+    ms[i].mesh.getWorldPosition(p); p.y += 0.55; return p;
+  }, function(){ return state.level === 5 && tableScene.visible; }, el.colorCss, true);
+});
+
+function shellAnchor(idx){
+  return function(){
+    return new THREE.Vector3(atomScene.userData.shellRadii[idx] || 0, 0, 0);
+  };
+}
+addLabel('K shell', 'max 2',  shellAnchor(0), function(){ return state.level === 7 && atomScene.visible; }, '#8fa8ff');
+addLabel('L shell', 'max 8',  shellAnchor(1), function(){ return state.level === 7 && atomScene.visible; }, '#6fd8ff');
+addLabel('M shell', 'max 18', shellAnchor(2), function(){ return state.level === 7 && currentElement.shells.length >= 3 && atomScene.visible; }, '#5fe8ff');
+addLabel('N shell', 'max 32', shellAnchor(3), function(){ return state.level === 7 && currentElement.shells.length >= 4 && atomScene.visible; }, '#5fd8ff');
+
+function quarkAnchor(idx){
+  return function(){
+    var qg = atomScene.userData.quarkGroup;
+    if (!qg || !qg.userData.quarks[idx]) return null;
+    var p = new THREE.Vector3();
+    qg.userData.quarks[idx].mesh.getWorldPosition(p);
+    return p;
+  };
+}
+addLabel('Up q',   '+2/3', quarkAnchor(0), function(){ return state.level >= 8 && atomScene.userData.quarkGroup && atomScene.userData.quarkGroup.visible; }, '#ff8a4c');
+addLabel('Up q',   '+2/3', quarkAnchor(1), function(){ return state.level >= 8 && atomScene.userData.quarkGroup && atomScene.userData.quarkGroup.visible; }, '#ff8a4c');
+addLabel('Down q', '−1/3', quarkAnchor(2), function(){ return state.level >= 8 && atomScene.userData.quarkGroup && atomScene.userData.quarkGroup.visible; }, '#4fd1ff');
+
+// ---------------------------------------------------------------------------
+// AUDIO
+// ---------------------------------------------------------------------------
+var audio = { ctx:null, master:null, music:null, sfxG:null, droneBuilt:false, chTimer:null, arpTimer:null };
+
+function ensureAudio(){
+  if (audio.ctx) return audio.ctx;
+  var AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  var c = new AC();
+  audio.ctx = c;
+
+  var master = c.createGain(); master.gain.value = 0;
+  var comp = c.createDynamicsCompressor();
+  comp.threshold.value = -18; comp.knee.value = 8;
+  comp.ratio.value = 4; comp.attack.value = 0.02; comp.release.value = 0.4;
+  master.connect(comp); comp.connect(c.destination);
+  audio.master = master;
+
+  var rate = c.sampleRate, sec = 8, dec = 2.6;
+  var buf = c.createBuffer(2, Math.floor(rate*sec), rate);
+  for (var ch=0; ch<2; ch++){
+    var d = buf.getChannelData(ch);
+    for (var i=0; i<d.length; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, dec);
+  }
+  var conv = c.createConvolver(); conv.buffer = buf;
+  var revG = c.createGain(); revG.gain.value = 0.72;
+  conv.connect(revG); revG.connect(master);
+
+  var music = c.createGain(); music.gain.value = 0;
+  music.connect(master); music.connect(conv);
+  audio.music = music;
+
+  var sfxG = c.createGain(); sfxG.gain.value = 0.4;
+  sfxG.connect(master); sfxG.connect(conv);
+  audio.sfxG = sfxG;
+  audio.conv = conv;
+
+  return c;
+}
+
+var CHORDS = [
+  [220.00, 261.63, 329.63, 440.00],
+  [174.61, 220.00, 261.63, 349.23],
+  [196.00, 261.63, 329.63, 392.00],
+  [196.00, 246.94, 293.66, 392.00]
+];
+var ARP = [440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+
+function organ(freq, when, dur, vol){
+  if (!audio.ctx) return;
+  var c = audio.ctx;
+  var parts = [1,2,3,4], gains = [1,0.4,0.25,0.12];
+  var mix = c.createGain(); mix.gain.value = vol;
+  mix.connect(audio.music);
+  var flt = c.createBiquadFilter();
+  flt.type = 'lowpass'; flt.frequency.value = 1800;
+  mix.connect(flt);
+  for (var i=0; i<parts.length; i++){
+    var o = c.createOscillator();
+    o.type = 'sine'; o.frequency.value = freq*parts[i];
+    o.detune.value = (Math.random()-0.5)*6;
+    var g = c.createGain(); g.gain.value = gains[i];
+    o.connect(g); g.connect(mix);
+    o.start(when); o.stop(when + dur + 0.5);
+  }
+  mix.gain.setValueAtTime(0.0001, when);
+  mix.gain.linearRampToValueAtTime(vol, when + 2.5);
+  mix.gain.linearRampToValueAtTime(vol*0.85, when + dur - 2);
+  mix.gain.linearRampToValueAtTime(0.0001, when + dur + 0.5);
+}
+
+function piano(freq, when, dur, vol){
+  if (!audio.ctx) return;
+  var c = audio.ctx;
+  var car = c.createOscillator(); car.type='sine'; car.frequency.value = freq;
+  var mod = c.createOscillator(); mod.type='sine'; mod.frequency.value = freq*2;
+  var modG = c.createGain(); modG.gain.value = freq*0.6;
+  mod.connect(modG); modG.connect(car.frequency);
+  var g = c.createGain(); g.gain.value = 0;
+  car.connect(g); g.connect(audio.music);
+  g.gain.setValueAtTime(0.0001, when);
+  g.gain.linearRampToValueAtTime(vol, when+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, when+dur);
+  modG.gain.setValueAtTime(freq*0.6, when);
+  modG.gain.exponentialRampToValueAtTime(freq*0.02, when+0.5);
+  car.start(when); car.stop(when+dur+0.3);
+  mod.start(when); mod.stop(when+dur+0.3);
+}
+
+var chordIdx = 0;
+function playChord(){
+  if (!audio.ctx) return;
+  var ch = CHORDS[chordIdx % CHORDS.length];
+  var t = audio.ctx.currentTime + 0.1, dur = 10;
+  ch.forEach(function(f,i){ organ(f, t, dur, 0.08 - i*0.008); });
+  organ(ch[0]/2, t, dur, 0.12);
+  chordIdx++;
+  audio.chTimer = setTimeout(playChord, (dur - 1) * 1000);
+}
+
+function playArp(){
+  if (!audio.ctx) return;
+  var t = audio.ctx.currentTime;
+  var seq = [0,2,4,2,4,6];
+  seq.forEach(function(i,k){
+    if (i >= ARP.length) return;
+    piano(ARP[i], t + k*0.9, 2.2, 0.05);
+  });
+  audio.arpTimer = setTimeout(playArp, 12000 + Math.random()*6000);
+}
+
+function buildDrone(){
+  if (audio.droneBuilt || !audio.ctx) return;
+  audio.droneBuilt = true;
+  var c = audio.ctx;
+  var sub = c.createOscillator();
+  sub.type = 'sine'; sub.frequency.value = 55;
+  var subG = c.createGain(); subG.gain.value = 0.06;
+  sub.connect(subG); subG.connect(audio.music);
+  sub.start();
+  var now = c.currentTime;
+  audio.music.gain.setValueAtTime(0.0001, now);
+  audio.music.gain.linearRampToValueAtTime(0.22, now + 8);
+  setTimeout(playChord, 500);
+  setTimeout(playArp, 3500);
+}
+
+function setSound(on){
+  var c = ensureAudio();
+  if (!c) return;
+  if (c.state === 'suspended') c.resume();
+  if (on && !audio.droneBuilt) buildDrone();
+  state.soundOn = on;
+  var now = c.currentTime;
+  audio.master.gain.cancelScheduledValues(now);
+  audio.master.gain.setTargetAtTime(on ? 0.55 : 0.0001, now, 0.5);
+  $('bSnd').classList.toggle('on', on);
+}
+
+function sfx(name){
+  if (!audio.ctx || !state.soundOn) return;
+  var c = audio.ctx, t = c.currentTime;
+  function blip(f0, f1, dur, peak, type){
+    var o = c.createOscillator(); o.type = type || 'sine';
+    o.frequency.setValueAtTime(f0, t);
+    if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur*0.8);
+    var g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(audio.sfxG);
+    o.start(t); o.stop(t + dur + 0.1);
+  }
+  if (name === 'lvl') blip(240, 880, 0.8, 0.09);
+  else if (name === 'sel') blip(880, 880, 0.14, 0.07, 'triangle');
+  else if (name === 'enter') blip(120, 640, 2.0, 0.13);
+  else if (name === 'ok'){ blip(523.25, 523.25, 0.5, 0.09); setTimeout(function(){ audio.ctx && blip(783.99,783.99,0.9,0.08); }, 130); }
+  else if (name === 'no') blip(180, 110, 0.5, 0.09, 'sawtooth');
+}
+
+// ---------------------------------------------------------------------------
+// STATE
+// ---------------------------------------------------------------------------
+var MIN_D = 0.06, MAX_D = 40;
+var state = {
+  radius: 22, targetRadius: 22,
+  theta: 0.6, targetTheta: 0.6,
+  phi: 1.28, targetPhi: 1.28,
+  level: 0,
+  lastInteraction: performance.now(),
+  soundOn: false,
+  gesture: false,
+  gestureRate: 0,
+  autoRotate: false,
+  atomRotate: false
+};
+
+function levelFromRadius(r){
+  if (r > 16) return 0;
+  if (r > 11) return 1;
+  if (r > 7)  return 2;
+  if (r > 5)  return 3;
+  if (r > 3.3) return 4;
+  if (r > 2.0) return 5;
+  if (r > 1.5) return 6;
+  if (r > 1.05) return 7;
+  if (r > 0.30) return 8;
+  if (r > 0.16) return 9;
+  if (r > 0.09) return 10;
+  return 11;
+}
+
+function sceneWeights(r){
+  var earth = smoothstep((r - 2.68) / 0.30);
+  var atom  = smoothstep((2.02 - r) / 0.30);
+  var table = clamp(1 - earth - atom, 0, 1);
+  return { earth: earth, table: table, atom: atom };
+}
+
+// ---------------------------------------------------------------------------
+// INPUT
+// ---------------------------------------------------------------------------
+var pointers = new Map();
+var dragging = false, lastX = 0, lastY = 0;
+var pinchStart = 0, pinchStartRadius = 0;
+var tapTime = 0, tapX = 0, tapY = 0;
+
+function touched(){ state.lastInteraction = performance.now(); }
+function pDist(){
+  var arr = []; pointers.forEach(function(v){ arr.push(v); });
+  if (arr.length < 2) return 0;
+  return Math.hypot(arr[0].x - arr[1].x, arr[0].y - arr[1].y);
+}
+
+canvas.addEventListener('pointerdown', function(e){
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 1){
+    dragging = true; lastX = e.clientX; lastY = e.clientY;
+    tapTime = performance.now(); tapX = e.clientX; tapY = e.clientY;
+  } else if (pointers.size === 2){
+    dragging = false; pinchStart = pDist(); pinchStartRadius = state.targetRadius;
+  }
+  touched();
+});
+
+window.addEventListener('pointermove', function(e){
+  if (!pointers.has(e.pointerId)) return;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 1 && dragging){
+    var dx = e.clientX - lastX, dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    state.targetTheta -= dx * 0.006;
+    state.targetPhi = clamp(state.targetPhi - dy * 0.005, 0.2, Math.PI - 0.2);
+    touched();
+  } else if (pointers.size >= 2){
+    var d = pDist();
+    if (pinchStart > 0 && d > 0){
+      state.targetRadius = clamp(pinchStartRadius / (d / pinchStart), MIN_D, MAX_D);
+    }
+    touched();
+  }
+});
+
+window.addEventListener('pointerup', function(e){
+  if (pointers.size === 1 && dragging){
+    var dt = performance.now() - tapTime;
+    var dd = Math.hypot(e.clientX - tapX, e.clientY - tapY);
+    if (dt < 300 && dd < 8) doTap(e.clientX, e.clientY);
+  }
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) pinchStart = 0;
+  if (pointers.size === 1){
+    var r = null; pointers.forEach(function(v){ r = v; });
+    lastX = r.x; lastY = r.y; dragging = true;
+  } else if (pointers.size === 0) dragging = false;
+});
+
+window.addEventListener('pointercancel', function(e){
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) pinchStart = 0;
+  dragging = false;
+});
+
+canvas.addEventListener('wheel', function(e){
+  e.preventDefault();
+  var d = e.deltaY;
+  if (e.deltaMode === 1) d *= 16;
+  else if (e.deltaMode === 2) d *= 100;
+  var sens = e.ctrlKey ? 0.012 : 0.0014;
+  state.targetRadius = clamp(state.targetRadius * Math.exp(d * sens), MIN_D, MAX_D);
+  touched();
+}, { passive: false });
+
+canvas.addEventListener('gesturestart', function(e){ e.preventDefault(); });
+canvas.addEventListener('gesturechange', function(e){ e.preventDefault(); });
+canvas.addEventListener('touchmove', function(e){ if (e.touches.length === 2) e.preventDefault(); }, { passive: false });
+
+var raycaster = new THREE.Raycaster();
+var mouseVec = new THREE.Vector2();
+
+function doTap(cx, cy){
+  var rect = canvas.getBoundingClientRect();
+  mouseVec.x = ((cx - rect.left) / rect.width) * 2 - 1;
+  mouseVec.y = -((cy - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouseVec, camera);
+
+  if (state.level === 5 && tableScene.visible){
+    var metalHits = raycaster.intersectObjects(
+      tableScene.userData.metals.map(function(m){ return m.hitbox; }), false);
+    if (metalHits.length > 0){
+      var mi = metalHits[0].object.userData.elIdx;
+      if (typeof mi === 'number'){
+        selectElement(mi); sfx('sel');
+        state.targetRadius = LEVELS[6].dist;
+        state.lastInteraction = performance.now();
+        return;
+      }
+    }
+    var nonHits = raycaster.intersectObjects(
+      tableScene.userData.nonmetals.map(function(m){ return m.hitbox; }), false);
+    if (nonHits.length > 0){
+      var ni = nonHits[0].object.userData.elIdx;
+      if (typeof ni === 'number'){
+        selectElement(ni); sfx('sel');
+        state.targetRadius = LEVELS[6].dist;
+        state.lastInteraction = performance.now();
+        return;
+      }
+    }
+  }
+
+  if (atomScene.visible){
+    var nHits = raycaster.intersectObjects(
+      atomScene.userData.nucleons.map(function(n){ return n.mesh; }), false);
+    if (nHits.length > 0){
+      for (var i=0; i<atomScene.userData.nucleons.length; i++){
+        if (atomScene.userData.nucleons[i].mesh === nHits[0].object){
+          openParticle(atomScene.userData.nucleons[i].isProton ? 'proton' : 'neutron');
+          sfx('sel');
+          return;
+        }
+      }
+    }
+    var qg = atomScene.userData.quarkGroup;
+    if (qg && qg.visible){
+      var qHits = raycaster.intersectObjects(qg.userData.quarks.map(function(q){ return q.mesh; }), false);
+      if (qHits.length > 0){ openParticle('quark'); sfx('sel'); return; }
+      var sHits = raycaster.intersectObjects(qg.userData.seaQuarks.map(function(s){ return s.mesh; }), false);
+      if (sHits.length > 0){ openParticle('seapair'); sfx('sel'); return; }
+      if (qg.userData.lineHitboxes){
+        var bHits = raycaster.intersectObjects(qg.userData.lineHitboxes, false);
+        if (bHits.length > 0){ openBond('strong'); sfx('sel'); return; }
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// ELEMENT SELECTION & PICKER
+// ---------------------------------------------------------------------------
+function selectElement(idx){
+  if (idx < 0 || idx >= ELEMENTS.length) return;
+  currentElement = ELEMENTS[idx];
+  rebuildAtom(currentElement);
+  buildPicker();
+  updateInfoStrip(state.level);
+  updateMini();
+}
+
+function buildPicker(){
+  var p = $('picker');
+  p.innerHTML = '';
+  ELEMENTS.forEach(function(el, i){
+    var b = document.createElement('button');
+    if (el === currentElement) b.className = 'sel';
+    b.innerHTML = '<span class="z">' + el.z + '</span>' +
+      '<span class="s" style="color:' + el.colorCss + '">' + el.symbol + '</span>' +
+      '<span class="n">' + el.name.slice(0,7) + '</span>';
+    b.onclick = function(){
+      selectElement(i);
+      sfx('sel');
+      if (state.level < 6){
+        state.targetRadius = LEVELS[6].dist;
+        state.lastInteraction = performance.now();
+      }
+    };
+    p.appendChild(b);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// BOHR DRAWING
+// ---------------------------------------------------------------------------
+function drawBohr(ctx, cv, el, compact){
+  var W = cv.width, H = cv.height;
+  var cx = W/2, cy = H/2;
+  ctx.clearRect(0,0,W,H);
+  var bg = ctx.createRadialGradient(cx,cy,0,cx,cy,W*0.55);
+  bg.addColorStop(0,'rgba(20,30,60,0.9)');
+  bg.addColorStop(1,'rgba(4,6,14,0.95)');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  var numShells = el.shells.length;
+  var shellR = [];
+  var maxR = compact ? W*0.40 : W*0.42;
+  var minR = compact ? W*0.16 : W*0.11;
+  if (numShells === 1) shellR = [maxR*0.75];
+  else for (var si=0; si<numShells; si++){
+    var t = si / (numShells - 1);
+    shellR.push(minR + t*(maxR - minR));
+  }
+
+  var names = ['K','L','M','N','O'];
+  el.shells.forEach(function(cnt, si){
+    var R = shellR[si];
+    ctx.strokeStyle = 'rgba(95,227,255,0.4)';
+    ctx.lineWidth = compact ? 1 : 1.5;
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
+    if (!compact){
+      ctx.fillStyle = 'rgba(95,227,255,0.85)';
+      ctx.font = '500 14px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(names[si] || ('n='+(si+1)), cx+R+6, cy-4);
+    }
+    var eR = compact ? 3.5 : 7;
+    var gR = compact ? 8 : 14;
+    for (var e=0; e<cnt; e++){
+      var ang = (e/cnt)*Math.PI*2 - Math.PI/2;
+      var ex = cx + Math.cos(ang)*R;
+      var ey = cy + Math.sin(ang)*R;
+      var g = ctx.createRadialGradient(ex,ey,0,ex,ey,gR);
+      g.addColorStop(0,'rgba(150,240,255,0.95)');
+      g.addColorStop(1,'rgba(95,227,255,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(ex,ey,gR,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#bfefff';
+      ctx.beginPath(); ctx.arc(ex,ey,eR,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+      ctx.lineWidth = 1; ctx.stroke();
+    }
+  });
+
+  var nR = compact ? W*0.06 : W*0.055;
+  var nG = ctx.createRadialGradient(cx,cy,0,cx,cy,nR*2.8);
+  nG.addColorStop(0,'rgba(255,140,170,0.6)');
+  nG.addColorStop(1,'rgba(255,80,120,0)');
+  ctx.fillStyle = nG;
+  ctx.beginPath(); ctx.arc(cx,cy,nR*2.8,0,Math.PI*2); ctx.fill();
+
+  var dP = Math.min(el.protons, compact ? 10 : 20);
+  var dN = Math.min(el.neutrons, compact ? 10 : 20);
+  var pr = compact ? 3 : 4.5;
+  var rng = mulberry32(el.z * 13 + 7);
+  var placed = [];
+  var total = dP + dN;
+  var tries = 0;
+  while (placed.length < total && tries < 500){
+    tries++;
+    var u = rng()*2-1, th = rng()*Math.PI*2, s = Math.sqrt(1-u*u);
+    var r = nR * 0.92 * Math.cbrt(rng());
+    var x = cx + r*s*Math.cos(th), y = cy + r*s*Math.sin(th);
+    var ok = true;
+    for (var m=0; m<placed.length; m++){
+      if (Math.hypot(placed[m].x-x, placed[m].y-y) < pr*1.7){ ok=false; break; }
+    }
+    if (ok) placed.push({ x: x, y: y, isP: placed.length < dP });
+  }
+  placed.forEach(function(p){
+    var g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,pr*1.5);
+    if (p.isP){ g.addColorStop(0,'#ff7090'); g.addColorStop(1,'rgba(255,60,100,0.3)'); }
+    else { g.addColorStop(0,'#a8bce0'); g.addColorStop(1,'rgba(90,120,180,0.3)'); }
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(p.x,p.y,pr,0,Math.PI*2); ctx.fill();
+  });
+
+  if (!compact){
+    ctx.textAlign = 'left';
+    ctx.font = '500 12px "JetBrains Mono", monospace';
+    var lx = 24, ly = H - 30;
+    ctx.fillStyle = '#ff7090';
+    ctx.beginPath(); ctx.arc(lx,ly,6,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(200,220,245,0.9)';
+    ctx.fillText('proton ×' + el.protons, lx+14, ly+4);
+    lx += 145;
+    ctx.fillStyle = '#a8bce0';
+    ctx.beginPath(); ctx.arc(lx,ly,6,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(200,220,245,0.9)';
+    ctx.fillText('neutron ×' + el.neutrons, lx+14, ly+4);
+    lx += 155;
+    ctx.fillStyle = '#bfefff';
+    ctx.beginPath(); ctx.arc(lx,ly,6,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(200,220,245,0.9)';
+    ctx.fillText('electron ×' + el.protons, lx+14, ly+4);
+  }
+}
+
+function updateMini(){
+  var m = $('mini');
+  if (state.level >= 6){
+    m.classList.add('on');
+    $('miniSym').textContent = currentElement.symbol;
+    var cv = $('miniC');
+    drawBohr(cv.getContext('2d'), cv, currentElement, true);
+  } else {
+    m.classList.remove('on');
+  }
+}
+
+function openBohr(){
+  var el = currentElement;
+  $('mbT').textContent = el.name;
+  $('mbS').textContent = 'Z = ' + el.z + ' · ' + el.shells.join(', ');
+  $('mbSum').textContent = el.summary;
+
+  var st = $('mbStats');
+  st.innerHTML =
+    '<div class="stat"><div class="l">Protons</div><div class="v p">' + el.protons + '</div></div>' +
+    '<div class="stat"><div class="l">Neutrons</div><div class="v">' + el.neutrons + '</div></div>' +
+    '<div class="stat"><div class="l">Electrons</div><div class="v c">' + el.protons + '</div></div>' +
+    '<div class="stat"><div class="l">Mass no.</div><div class="v">' + (el.protons + el.neutrons) + '</div></div>' +
+    '<div class="stat"><div class="l">Melting</div><div class="v">' + el.melting + ' °C</div></div>' +
+    '<div class="stat"><div class="l">Density</div><div class="v">' + el.density + '</div></div>';
+
+  var ch = $('mbChips');
+  ch.innerHTML =
+    '<span class="chip p"><span class="d"></span>proton ×' + el.protons + '</span>' +
+    '<span class="chip n"><span class="d"></span>neutron ×' + el.neutrons + '</span>' +
+    '<span class="chip e"><span class="d"></span>electron ×' + el.protons + '</span>';
+
+  var sh = $('mbShells');
+  sh.innerHTML = '';
+  var names = ['K','L','M','N','O'], maxes = [2,8,18,32,50];
+  el.shells.forEach(function(c, i){
+    var li = document.createElement('li');
+    li.textContent = names[i] + ' shell (n=' + (i+1) + '): ' + c + ' of max ' + maxes[i] + ' electrons';
+    sh.appendChild(li);
+  });
+  var vl = document.createElement('li');
+  vl.style.color = '#ffd36e';
+  vl.textContent = 'Valence: ' + el.shells[el.shells.length-1] + ' (outermost shell)';
+  sh.appendChild(vl);
+
+  var bl = $('mbBonds');
+  bl.innerHTML = '';
+  var rel = el.grp === 'metal' ? ['strong','electrostatic','metallic'] : ['strong','electrostatic','covalent','vanderwaals'];
+  rel.forEach(function(k){
+    var b = BONDS[k];
+    var btn = document.createElement('button');
+    btn.className = 'bond';
+    btn.innerHTML = '<div class="n">' + b.title + '</div><div class="d">' + b.sub + '</div>';
+    btn.onclick = function(){ openBond(k); };
+    bl.appendChild(btn);
+  });
+
+  var cv = $('bohrC');
+  drawBohr(cv.getContext('2d'), cv, el, false);
+  $('mBohr').classList.add('on');
+}
+
+// ---------------------------------------------------------------------------
+// MODALS
+// ---------------------------------------------------------------------------
+function openParticle(key){
+  var p = PARTICLES[key]; if (!p) return;
+  $('mpT').textContent = p.title;
+  $('mpS').textContent = p.sub;
+  $('mpSum').textContent = p.summary;
+  var f = $('mpF'); f.innerHTML = '';
+  p.facts.forEach(function(x){
+    var li = document.createElement('li'); li.textContent = x; f.appendChild(li);
+  });
+  $('mpD').textContent = p.dyk;
+  $('mPart').classList.add('on');
+}
+
+function openBond(key){
+  var b = BONDS[key]; if (!b) return;
+  $('mbnT').textContent = b.title;
+  $('mbnS').textContent = b.sub;
+  $('mbnSum').textContent = b.summary;
+  var f = $('mbnF'); f.innerHTML = '';
+  b.facts.forEach(function(x){
+    var li = document.createElement('li'); li.textContent = x; f.appendChild(li);
+  });
+  $('mbnD').textContent = b.dyk;
+  $('mBond').classList.add('on');
+}
+
+function openInfo(){
+  var L = LEVELS[state.level], info = INFO[state.level], el = currentElement;
+  $('miT').textContent = L.title + (state.level >= 6 ? ' · ' + el.name : '');
+  $('miS').textContent = L.code + ' · ' + L.tag;
+  $('miSum').textContent = info.summary;
+  var f = $('miF'); f.innerHTML = '';
+  var facts = info.facts.slice();
+  if (state.level >= 6 && state.level <= 11){
+    facts = [
+      'Element: ' + el.name + ' (' + el.symbol + ') · Z = ' + el.z,
+      'Protons: ' + el.protons + ' · Neutrons: ' + el.neutrons,
+      'Electron configuration: ' + el.shells.join(', '),
+      'Appearance: ' + el.appearance
+    ].concat(facts);
+  }
+  facts.forEach(function(x){
+    var li = document.createElement('li'); li.textContent = x; f.appendChild(li);
+  });
+  var dw = $('miDW');
+  var dtext = (state.level >= 6 && state.level <= 11) ? el.funFact : info.dyk;
+  if (dtext){ dw.style.display = 'block'; $('miD').textContent = dtext; }
+  else dw.style.display = 'none';
+  var nn = $('miN');
+  if (info.note){ nn.style.display = 'flex'; nn.textContent = info.note; }
+  else nn.style.display = 'none';
+  $('mInfo').classList.add('on');
+}
+
+// ---------------------------------------------------------------------------
+// QUIZ
+// ---------------------------------------------------------------------------
+var qIdx = 0, qScore = 0, qAnswered = false;
+
+function openQuiz(){
+  qIdx = 0; qScore = 0; qAnswered = false;
+  renderQuiz();
+  $('mQuiz').classList.add('on');
+}
+
+function renderQuiz(){
+  var q = QUIZ[qIdx];
+  $('mqT').textContent = 'Knowledge Check';
+  $('mqS').textContent = 'Question ' + (qIdx+1) + ' of ' + QUIZ.length;
+  $('mqQ').textContent = q.q;
+  $('mqScore').textContent = 'Score ' + qScore + ' / ' + QUIZ.length;
+  var o = $('mqOpts'); o.innerHTML = '';
+  q.opts.forEach(function(opt, i){
+    var b = document.createElement('button');
+    b.className = 'qopt';
+    b.innerHTML = '<span class="k">' + String.fromCharCode(65+i) + '</span>' + opt;
+    b.onclick = function(){ chooseAnswer(i); };
+    o.appendChild(b);
+  });
+  $('mqFdb').innerHTML = '';
+  var nx = $('mqNext');
+  nx.textContent = (qIdx+1 >= QUIZ.length) ? 'Finish' : 'Next';
+  nx.disabled = true; nx.style.opacity = '0.4';
+  nx.onclick = nextQuiz;
+  qAnswered = false;
+}
+
+function chooseAnswer(i){
+  if (qAnswered) return;
+  qAnswered = true;
+  var q = QUIZ[qIdx];
+  var ok = (i === q.a);
+  if (ok) qScore++;
+  var opts = document.querySelectorAll('#mqOpts .qopt');
+  for (var k=0; k<opts.length; k++){
+    opts[k].disabled = true;
+    if (k === q.a) opts[k].classList.add('ok');
+    else if (k === i) opts[k].classList.add('no');
+  }
+  $('mqFdb').innerHTML = '<div class="fdb ' + (ok ? 'ok' : 'no') + '">' +
+    (ok ? q.exp : 'Not quite.') + '</div>';
+  $('mqScore').textContent = 'Score ' + qScore + ' / ' + QUIZ.length;
+  var nx = $('mqNext'); nx.disabled = false; nx.style.opacity = '1';
+  sfx(ok ? 'ok' : 'no');
+}
+
+function nextQuiz(){
+  if (qIdx + 1 >= QUIZ.length){
+    $('mqT').textContent = 'Complete';
+    $('mqS').textContent = 'Score ' + qScore + ' / ' + QUIZ.length;
+    $('mqQ').textContent = qScore === QUIZ.length ? 'Perfect.' :
+      qScore >= QUIZ.length/2 ? 'Good work.' : 'Keep exploring.';
+    $('mqOpts').innerHTML = ''; $('mqFdb').innerHTML = '';
+    var nx = $('mqNext');
+    nx.textContent = 'Back to the atom';
+    nx.onclick = function(){ $('mQuiz').classList.remove('on'); };
+    return;
+  }
+  qIdx++;
+  renderQuiz();
+}
+
+// ---------------------------------------------------------------------------
+// HELP
+// ---------------------------------------------------------------------------
+function renderHelp(){
+  var rows = [
+    ['Pinch (touch)', 'Zoom in — travel deeper'],
+    ['Scroll / Trackpad', 'Zoom in and out'],
+    ['Drag', 'Rotate the scene'],
+    ['Webcam hand', 'Pinch fingers to zoom'],
+    ['Tap metal / vessel', 'Travel inside its atom'],
+    ['Tap a nucleon', 'Proton or neutron info'],
+    ['Tap a quark', 'Quark properties'],
+    ['Tap a gluon line', 'Strong force info'],
+    ['↻ button', 'Auto 360° rotation'],
+    ['M', 'Mute / unmute']
+  ];
+  var html = '';
+  rows.forEach(function(r){
+    html += '<div style="display:flex;gap:12px;padding:9px 12px;border-radius:8px;' +
+      'border:1px solid rgba(120,180,255,.1);background:rgba(10,18,38,.4);margin-bottom:7px">' +
+      '<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#5fe3ff;min-width:110px">' + r[0] + '</span>' +
+      '<span style="font-size:12.5px;color:#94a3bd">' + r[1] + '</span></div>';
+  });
+  $('mhBody').innerHTML = html;
+}
+
+// ---------------------------------------------------------------------------
+// HUD UPDATES
+// ---------------------------------------------------------------------------
+function updateHUD(lv){
+  var L = LEVELS[lv];
+  $('lCode').textContent = L.code;
+  $('lTitle').textContent = L.title;
+  $('sLab').textContent = L.tag;
+}
+
+function updateInfoStrip(lv){
+  var L = LEVELS[lv], info = INFO[lv];
+  var title = L.title, sum = info.summary;
+  if (lv >= 6 && lv <= 11){
+    title = L.title + ' · ' + currentElement.symbol;
+    sum = currentElement.summary + ' ' + info.summary;
+  }
+  $('iCode').textContent = L.code;
+  $('iTitle').textContent = title;
+  $('iSum').textContent = sum;
+}
+
+// ---------------------------------------------------------------------------
+// GESTURE (MediaPipe Hands)
+// ---------------------------------------------------------------------------
+var hands = null, camera_mp = null;
+var gestureVideo = $('camV');
+var gestureWrap = $('cam');
+var gestureStatus = $('camS');
+var gestureSmooth = 0.5;
+
+function startGesture(){
+  if (state.gesture){ stopGesture(); return; }
+  if (typeof Hands === 'undefined' || typeof Camera === 'undefined'){
+    gestureStatus.textContent = 'Not available'; return;
+  }
+  gestureWrap.classList.add('on');
+  gestureStatus.textContent = 'Starting…';
+
+  hands = new Hands({ locateFile: function(f){
+    return 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/' + f;
+  }});
+  hands.setOptions({ maxNumHands: 1, modelComplexity: 0,
+    minDetectionConfidence: 0.6, minTrackingConfidence: 0.5 });
+  hands.onResults(onGesture);
+
+  camera_mp = new Camera(gestureVideo, {
+    onFrame: async function(){
+      try { await hands.send({ image: gestureVideo }); } catch(e){}
+    },
+    width: 320, height: 240
+  });
+  camera_mp.start().then(function(){
+    state.gesture = true;
+    $('bHand').classList.add('on');
+    gestureStatus.textContent = 'Show hand';
+  }).catch(function(){
+    gestureStatus.textContent = 'Camera denied';
+    setTimeout(stopGesture, 2000);
+  });
+}
+
+function stopGesture(){
+  state.gesture = false;
+  state.gestureRate = 0;
+  $('bHand').classList.remove('on');
+  gestureWrap.classList.remove('on');
+  if (camera_mp){ try { camera_mp.stop(); } catch(e){} camera_mp = null; }
+  if (hands){ try { hands.close(); } catch(e){} hands = null; }
+}
+
+function onGesture(results){
+  if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0){
+    gestureStatus.textContent = 'Show hand';
+    state.gestureRate = 0;
+    return;
+  }
+  var lm = results.multiHandLandmarks[0];
+  var thumb = lm[4], idx = lm[8];
+  var dx = thumb.x - idx.x, dy = thumb.y - idx.y;
+  var d = Math.sqrt(dx*dx + dy*dy);
+  gestureSmooth = gestureSmooth * 0.7 + d * 0.3;
+  var rate = 0;
+  if (gestureSmooth < 0.09) rate = -1 * (1 - gestureSmooth/0.09);
+  else if (gestureSmooth > 0.15) rate = Math.min((gestureSmooth - 0.15)/0.15, 1);
+  state.gestureRate = rate;
+  gestureStatus.textContent = rate < -0.3 ? 'Zoom in' :
+    rate > 0.3 ? 'Zoom out' : 'Hold';
+}
+
+// ---------------------------------------------------------------------------
+// LABELS — projection to screen
+// ---------------------------------------------------------------------------
+function updateLabels(){
+  var w = canvas.clientWidth, h = canvas.clientHeight;
+  var tmp = new THREE.Vector3();
+  for (var i=0; i<labels.length; i++){
+    var L = labels[i];
+    if (!L.show()){ L.el.style.opacity = '0'; continue; }
+    var p = L.anchor();
+    if (!p){ L.el.style.opacity = '0'; continue; }
+    tmp.copy(p).project(camera);
+    if (tmp.z < -1 || tmp.z > 1){ L.el.style.opacity = '0'; continue; }
+    var x = (tmp.x * 0.5 + 0.5) * w;
+    var y = (-tmp.y * 0.5 + 0.5) * h;
+    L.el.style.left = x + 'px';
+    L.el.style.top = y + 'px';
+    L.el.style.opacity = '1';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// RENDER LOOP
+// ---------------------------------------------------------------------------
+var clock = new THREE.Clock();
+var lastLevel = -1;
+var lastPublish = 0;
+
+function animate(){
+  requestAnimationFrame(animate);
+  var dt = Math.min(clock.getDelta(), 0.05);
+  var t = clock.elapsedTime;
+  var now = performance.now();
+
+  if (!state.autoRotate && now - state.lastInteraction > 4500 && state.radius > 3.5){
+    state.targetTheta += dt * 0.02;
+  }
+  if (state.autoRotate) state.targetTheta += dt * 0.5;
+  if (state.atomRotate) atomPivot.rotation.y += dt * 0.5;
+
+  if (state.gesture && Math.abs(state.gestureRate) > 0.05){
+    var sp = state.gestureRate * 2.0 * dt * Math.max(state.radius * 0.5, 0.06);
+    state.targetRadius = clamp(state.targetRadius + sp, MIN_D, MAX_D);
+    state.lastInteraction = now;
+  }
+
+  var k = damp(4.5, dt);
+  state.radius += (state.targetRadius - state.radius) * k;
+  state.theta += (state.targetTheta - state.theta) * k;
+  state.phi += (state.targetPhi - state.phi) * k;
+
+  var lv = levelFromRadius(state.radius);
+  if (lv !== lastLevel){
+    lastLevel = lv;
+    state.level = lv;
+    updateHUD(lv);
+    updateInfoStrip(lv);
+    updateMini();
+    $('picker').classList.toggle('on', lv === 5);
+    if (lv > 0) sfx('lvl');
+  }
+
+  var sw = sceneWeights(state.radius);
+
+  // EARTH
+  if (sw.earth > 0.005){
+    earthScene.visible = true;
+    if (earthScene.userData.mat) earthScene.userData.mat.opacity = sw.earth;
+    if (earthScene.userData.cloudMat) earthScene.userData.cloudMat.opacity = sw.earth * 0.32;
+    if (earthScene.userData.atmMat) earthScene.userData.atmMat.opacity = sw.earth * 0.14;
+  } else earthScene.visible = false;
+
+  // SPACE SUN — fades with the Earth
+  if (spaceSun.userData.sunMat){
+    var eVis = sw.earth;
+    spaceSun.userData.sunMat.opacity = eVis;
+    spaceSun.userData.c1.material.opacity = eVis * 0.85;
+    spaceSun.userData.c2.material.opacity = eVis * 0.55;
+    spaceSun.userData.c3.material.opacity = eVis * 0.30;
+    spaceSun.userData.sunLight.intensity = eVis * 3.0;
+    spaceSun.visible = eVis > 0.01;
+  }
+
+  // TABLE
+  if (sw.table > 0.005){
+    tableScene.visible = true;
+    var fmats = tableScene.userData.fadeMats;
+    for (var fm=0; fm<fmats.length; fm++){
+      fmats[fm].transparent = true;
+      fmats[fm].opacity = sw.table;
+    }
+    if (tableScene.userData.porchLight) tableScene.userData.porchLight.intensity = 0.8 * sw.table;
+    sunGroup.userData.sunMat.opacity = sw.table;
+    sunGroup.userData.c1.material.opacity = sw.table * 0.7;
+    sunGroup.userData.c2.material.opacity = sw.table * 0.4;
+    sunGroup.visible = sw.table > 0.01;
+  } else {
+    tableScene.visible = false;
+    sunGroup.visible = false;
+  }
+
+  // ATOM
+  if (sw.atom > 0.005){
+    atomScene.visible = true;
+    var shellVis = clamp((state.radius - 1.25) / 0.5, 0, 1);
+    var shellBase = 0.14 * sw.atom * shellVis;
+    var outerIdx = currentElement.shells.length - 1;
+    var boostVal = (state.level === 7);
+
+    for (var smi=0; smi<atomScene.userData.shellMats.length; smi++){
+      var sm = atomScene.userData.shellMats[smi];
+      var mult = 1;
+      if (boostVal && sm.shell === outerIdx) mult = 2.6;
+      else if (boostVal) mult = 0.35;
+      if (sm.kind === 's') sm.mat.opacity = shellBase * mult * 0.7;
+      else sm.mat.opacity = shellBase * mult * 2.2;
+    }
+    for (var ei=0; ei<atomScene.userData.electrons.length; ei++){
+      var e = atomScene.userData.electrons[ei];
+      var em = 1;
+      if (boostVal && e.shellIndex === outerIdx) em = 1.8;
+      else if (boostVal) em = 0.4;
+      e.elMat.opacity = sw.atom * shellVis * em;
+      e.glowMat.opacity = sw.atom * shellVis * 0.95 * em;
+      e.trailMat.opacity = sw.atom * shellVis * 0.9 * em;
+    }
+
+    var othersVis = clamp((state.radius - 0.28)/0.18, 0, 1);
+    var focusVis = clamp((state.radius - 0.11)/0.13, 0, 1);
+    for (var ni=0; ni<atomScene.userData.nucleons.length; ni++){
+      var n = atomScene.userData.nucleons[ni];
+      var pulse = n.isFocus ? 1 : (1 + Math.sin(t*1.5 + ni)*0.035);
+      n.mesh.scale.setScalar(pulse);
+      var vis = n.isFocus ? focusVis : othersVis;
+      n.mat.opacity = sw.atom * vis;
+      n.glowMat.opacity = sw.atom * vis * 0.6;
+      n.markerMat.opacity = sw.atom * vis * 0.75;
+      var boost = (n.isFocus && state.level >= 8) ? 1.6 : 1;
+      n.mat.emissiveIntensity = 1.0 * boost * (0.9 + Math.sin(t*2 + ni)*0.1);
+    }
+
+    var qg = atomScene.userData.quarkGroup;
+    if (qg){
+      var qVis = clamp((1.05 - state.radius) / 0.35, 0, 1);
+      var showQ = qVis > 0.02;
+      if (qg.visible !== showQ) qg.visible = showQ;
+      if (showQ){
+        var qs = qg.userData.quarks;
+        var j2 = 0.008;
+        for (var qi=0; qi<qs.length; qi++){
+          var q = qs[qi];
+          q.mesh.position.set(
+            q.def.base.x + Math.sin(t*2.3 + q.def.phase)*j2,
+            q.def.base.y + Math.sin(t*1.9 + q.def.phase*1.7)*j2,
+            q.def.base.z + Math.cos(t*2.7 + q.def.phase)*j2
+          );
+          q.glow.position.copy(q.mesh.position);
+        }
+        qg.rotation.y = t * 0.1;
+        for (var sj=0; sj<qg.userData.seaQuarks.length; sj++){
+          var sq = qg.userData.seaQuarks[sj];
+          var life = 0.5 + 0.5*Math.sin(t*sq.speed + sq.phase);
+          var flick = Math.pow(life, 3);
+          sq.mat.opacity = sw.atom * qVis * flick * 0.95;
+          sq.mesh.scale.setScalar(0.6 + flick*0.6);
+        }
+        if (qg.userData.confineMat){
+          qg.userData.confineMat.opacity = sw.atom * qVis * (0.08 + 0.05*Math.sin(t*1.5));
+        }
+        for (var li=0; li<qg.userData.lines.length; li++){
+          var L2 = qg.userData.lines[li];
+          var a = qs[L2.pair[0]].mesh.position;
+          var b = qs[L2.pair[1]].mesh.position;
+          var attr = L2.geo.getAttribute('position');
+          var mX = (a.x + b.x)*0.5 + Math.sin(t*3 + li*2)*0.012;
+          var mY = (a.y + b.y)*0.5 + Math.cos(t*2.4 + li)*0.012;
+          var mZ = (a.z + b.z)*0.5;
+          for (var pi=0; pi<L2.PPL; pi++){
+            var u = pi/(L2.PPL - 1);
+            var x = (1-u)*(1-u)*a.x + 2*(1-u)*u*mX + u*u*b.x;
+            var y = (1-u)*(1-u)*a.y + 2*(1-u)*u*mY + u*u*b.y;
+            var z = (1-u)*(1-u)*a.z + 2*(1-u)*u*mZ + u*u*b.z;
+            attr.setXYZ(pi, x, y, z);
+          }
+          attr.needsUpdate = true;
+          L2.geo.computeBoundingSphere();
+          if (qg.userData.lineHitboxes[li]){
+            qg.userData.lineHitboxes[li].position.set(mX, mY, mZ);
+          }
+        }
+        var gv = clamp((0.15 - state.radius)/0.05, 0, 1);
+        for (var qmi=0; qmi<qg.userData.quarkMats.length; qmi++){
+          var mat = qg.userData.quarkMats[qmi];
+          var isG = (mat === qg.userData.gluonMat) || (mat === qg.userData.confineMat);
+          if (!isG){
+            for (var lgi=0; lgi<qg.userData.lines.length; lgi++){
+              if (qg.userData.lines[lgi].mat === mat){ isG = true; break; }
+            }
+          }
+          mat.opacity = sw.atom * qVis * (isG ? gv : 1);
+        }
+      }
+    }
+  } else atomScene.visible = false;
+
+  // Camera
+  var sinPhi = Math.sin(state.phi);
+  var ox = state.radius * sinPhi * Math.sin(state.theta);
+  var oy = state.radius * Math.cos(state.phi);
+  var oz = state.radius * sinPhi * Math.cos(state.theta);
+  camera.position.set(ox, oy, oz);
+  camera.lookAt(0, 0, 0);
+
+  var near = Math.max(0.0005, state.radius * 0.003);
+  var far = Math.max(4000, state.radius * 300);
+  if (Math.abs(camera.near - near) > near*0.01 || Math.abs(camera.far - far) > far*0.01){
+    camera.near = near; camera.far = far;
+    camera.updateProjectionMatrix();
+  }
+  camLight.position.copy(camera.position);
+
+  if (earthScene.visible){
+    if (earthScene.userData.earthMesh) earthScene.userData.earthMesh.rotation.y = 3.358 + t*0.035;
+    if (earthScene.userData.clouds) earthScene.userData.clouds.rotation.y = 3.358 + t*0.045;
+  }
+  for (var eo=0; eo<atomScene.userData.electrons.length; eo++){
+    var e2 = atomScene.userData.electrons[eo];
+    e2.orbit.rotation.y = e2.phase + t * e2.speed;
+  }
+
+  if (now - lastPublish > 100){
+    lastPublish = now;
+    var L = LEVELS[lv];
+    var curExp = L.exp;
+    if (lv < LEVELS.length - 1){
+      var nx = LEVELS[lv + 1];
+      var cL = Math.log(L.dist), nL = Math.log(nx.dist), rL = Math.log(state.radius);
+      var ratio = clamp((rL - cL) / (nL - cL), 0, 1);
+      curExp = L.exp + (nx.exp - L.exp) * ratio;
+    } else if (lv > 0){
+      var pv = LEVELS[lv - 1];
+      var cL2 = Math.log(L.dist), pL = Math.log(pv.dist), rL2 = Math.log(state.radius);
+      var r2 = clamp((rL2 - cL2) / (pL - cL2), 0, 1);
+      curExp = L.exp + (pv.exp - L.exp) * r2;
+    }
+    $('sExp').textContent = Math.round(curExp);
+  }
+
+  updateLabels();
+  renderer.render(scene, camera);
+}
+
+// ---------------------------------------------------------------------------
+// UI WIRING
+// ---------------------------------------------------------------------------
+$('bHand').onclick = function(){ startGesture(); };
+$('bRot').onclick = function(){
+  state.autoRotate = !state.autoRotate;
+  $('bRot').classList.toggle('on', state.autoRotate);
+};
+$('bSnd').onclick = function(){
+  var next = !state.soundOn;
+  setSound(next);
+  if (next) sfx('sel');
+};
+$('bQuiz').onclick = function(){ sfx('sel'); openQuiz(); };
+$('bHelp').onclick = function(){ renderHelp(); $('mHelp').classList.add('on'); };
+
+document.querySelectorAll('[data-close]').forEach(function(b){
+  b.onclick = function(){ $(b.dataset.close).classList.remove('on'); };
+});
+
+window.addEventListener('keydown', function(e){
+  var tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (e.key === '+' || e.key === '=') state.targetRadius = clamp(state.targetRadius / 1.35, MIN_D, MAX_D);
+  else if (e.key === '-' || e.key === '_') state.targetRadius = clamp(state.targetRadius * 1.35, MIN_D, MAX_D);
+  else if (e.key === 'r' || e.key === 'R') state.targetRadius = LEVELS[0].dist;
+  else if (e.key === 'm' || e.key === 'M') setSound(!state.soundOn);
+  else if (e.key === 'Escape'){
+    ['mQuiz','mHelp','mInfo','mBohr','mPart','mBond'].forEach(function(id){
+      $(id).classList.remove('on');
+    });
+  } else return;
+  state.lastInteraction = performance.now();
+});
+
+window.addEventListener('resize', function(){
+  var w = window.innerWidth, h = window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+
+$('bEnter').onclick = function(){
+  ensureAudio();
+  if (audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume();
+  setSound(true);
+  sfx('enter');
+  $('intro').classList.add('off');
+  state.targetRadius = LEVELS[0].dist;
+  state.radius = LEVELS[0].dist;
+  state.lastInteraction = performance.now();
+  setTimeout(function(){
+    state.targetRadius = LEVELS[1].dist;
+    state.lastInteraction = performance.now();
+  }, 900);
+};
+
+// ---------------------------------------------------------------------------
+// BOOT
+// ---------------------------------------------------------------------------
+buildPicker();
+updateHUD(0);
+updateInfoStrip(0);
+updateMini();
+
+earthScene.visible = true;
+tableScene.visible = false;
+atomScene.visible = false;
+sunGroup.visible = false;
+spaceSun.visible = false;
+
+state.radius = 22;
+state.targetRadius = 22;
+animate();
+
+var loadFill = $('lFill');
+var loadStart = performance.now();
+var loadDur = 1600;
+
+function loadTick(){
+  var tt = Math.min(1, (performance.now() - loadStart) / loadDur);
+  loadFill.style.width = Math.round((1 - Math.pow(1-tt, 2.2)) * 100) + '%';
+  if (tt < 1) requestAnimationFrame(loadTick);
+  else {
+    $('load').classList.add('off');
+    $('intro').classList.remove('off');
+    console.log('%cATOMVERSE ready', 'color:#5fe3ff;font-weight:700;font-size:16px');
+  }
+}
+requestAnimationFrame(loadTick);
+
+})();
+</script>
+</body>
+</html>
